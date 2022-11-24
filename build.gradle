@@ -12,6 +12,12 @@ plugins {
     id 'application'
 }
 
+tasks.register('rebuild') {
+	dependsOn 'build', 'clean'
+	tasks.getByName('build').mustRunAfter tasks.getByName('clean')
+}
+
+
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
@@ -49,3 +55,4 @@ tasks.getByName('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
+
