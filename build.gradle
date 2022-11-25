@@ -40,9 +40,9 @@ application {
 	println "Info: Running on Gradle major version $GMV ($gradle.gradleVersion)"
 
 	if ( GMV >= 6 ) { 
-		mainClass.set("tugip.App")
+		mainClass.set("hu.kwu.tugip.App")
 	} else{ 
-		mainClassName = 'tugip.App'
+		mainClassName = 'hu.kwu.tugip.App'
 	}
 	
 	// Aiming for JRE 8 so that it runs on everything

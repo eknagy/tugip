@@ -3,6 +3,7 @@
  */
 package tugip;
 
+import hu.kwu.tugip.App;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
