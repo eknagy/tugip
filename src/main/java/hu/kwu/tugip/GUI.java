@@ -52,8 +52,8 @@ public class GUI extends JFrame {
         setVisible(true);
         TextPanel.setBackground(Color.white);
         TextPanel.add(TextLabel, BorderLayout.CENTER);
-        TextLabel.setBackground(Color.yellow);
-        TextLabel.setOpaque(true);
+//        TextLabel.setBackground(Color.yellow);
+//        TextLabel.setOpaque(true);
         TextLabel.setFont(new Font("Courier", Font.BOLD, 144));
         TextLabel.setVerticalAlignment(SwingConstants.CENTER);
         TextLabel.setHorizontalAlignment(SwingConstants.CENTER);
