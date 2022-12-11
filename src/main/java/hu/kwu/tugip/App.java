@@ -118,7 +118,7 @@ public class App {
             if (Ls.length > 0) {
                 System.out.println("Mixer " + M.toString() + " has " + Ls.length + " lines for " + DLI.toString() + ".");
             }
-            MyGUI.setIntensity(255, false);
+            MyGUI.setIntensity(0, false);
                    
             for (Line.Info CLI : Ls) {
                 try {
