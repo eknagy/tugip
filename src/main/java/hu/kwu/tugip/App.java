@@ -131,8 +131,9 @@ public class App {
                         BB.put(0, Buffer[C * VisualSampleConstant]);
                         BB.put(1, Buffer[C * VisualSampleConstant + 1]);
                         short Tmp = BB.getShort(0);
-                        System.out.println("C/Level: "+C+" "+Math.abs(Tmp*256/Short.MAX_VALUE));
-                        MyGUI.setIntensity(Math.abs(Tmp*256/Short.MAX_VALUE), true);
+                        int VolumeLevel=Math.min(255, Math.abs(Tmp)/32);
+//                        System.out.println("DEBUG: " +Tmp+" "+Math.abs(Tmp)/32+" "+VolumeLevel);
+                        MyGUI.setIntensity(VolumeLevel, true);
 
                         try {
                             Thread.sleep(33);

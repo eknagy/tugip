@@ -25,7 +25,7 @@ public class GUI extends JFrame {
             colorTable[i]=new Color(i<<8);
             colorTable[i+256]=new Color(i<<16);
         }
-        setPreferredSize(new Dimension(200,200));
+        setPreferredSize(new Dimension(640  ,640));
         pack();
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
