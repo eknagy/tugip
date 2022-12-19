@@ -4,6 +4,7 @@
  */
 package hu.kwu.tugip;
 
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -18,16 +19,17 @@ public class Lecturer {
 
     public Lecturer(String LectureName) throws FileNotFoundException, IOException {
         this.LectureName = LectureName;
-        FileInputStream FIS = new FileInputStream("lectures/" + this.LectureName + "/config.properties");
+        BufferedInputStream FIS = new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("lectures/" + this.LectureName + "/config.properties"));
         P.load(FIS);
     }
 
     public String getHelloFileName() throws IOException{
-        String HelloPathString = "lectures/" + this.LectureName + "/" + P.getProperty("BEFORE_LECTURE") + ".wav";
+/*        String HelloPathString = "lectures/" + this.LectureName + "/" + P.getProperty("BEFORE_LECTURE") + ".wav";
         Path HelloPath = Paths.get(HelloPathString);
         if ((!Files.exists(HelloPath)) || (!Files.isReadable(HelloPath)) || (!Files.isRegularFile(HelloPath))) {
               throw new IOException("Not {found, readable, a file}: "+HelloPath.toString()+" ("+HelloPathString+")");
         }
-        return HelloPath.toString();
+*/
+        return ("lectures/" + this.LectureName + "/" + P.getProperty("BEFORE_LECTURE") + ".wav");
     }
 }

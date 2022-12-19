@@ -10,14 +10,14 @@ import javax.sound.sampled.LineUnavailableException;
 
 public class App {
 
-    final static Sounder S = new Sounder("systemsounds/tugip_mfp.wav");
-    final static GUI MyGUI = new GUI();
+    public final static Sounder S = new Sounder("systemsounds/tugip_hello.wav");
+    public final static GUI SingletonGUI = new GUI();
 
     public static void main(String[] args) throws RuntimeException, ClassNotFoundException, UnsupportedAudioFileException, IOException, LineUnavailableException {
         System.out.println("Starting up, Sounder and GUI already static initailized.");
         Lecturer L = new Lecturer("test_keys");
         System.out.println("Loaded Lecturer.");
-        S.playOnSelectedLine(L.getHelloFileName(), MyGUI);
-        System.out.println("Exiting...");
+//        S.playOnSelectedLine(L.getHelloFileName());
+        S.playOnSelectedLine("systemsounds/tugip_hello.wav");
     }
 }

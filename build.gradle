@@ -17,7 +17,6 @@ tasks.register('rebuild') {
 	tasks.getByName('build').mustRunAfter tasks.getByName('clean')
 }
 
-
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
@@ -50,6 +49,9 @@ application {
 	targetCompatibility = '1.8'
 }
 
+tasks.jar {
+    manifest.attributes["Main-Class"] = "hu.kwu.tugip.App"
+}
 
 tasks.getByName('test') {
     // Use JUnit Platform for unit tests.

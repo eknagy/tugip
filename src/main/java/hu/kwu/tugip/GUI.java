@@ -17,9 +17,10 @@ import javax.swing.SwingConstants;
 
 
 public class GUI extends JFrame {
+    
     JPanel VisualiserPanel=new JPanel();
     JPanel TextPanel=new JPanel(new BorderLayout());
-    JLabel TextLabel=new JLabel("<html><div style='text-align: center;'>fffff<br />jjjjj<br />fjfjfjfjfj<br />fj fj fj fj fj</div><html>");
+    JLabel TextLabel=new JLabel("<html><div style='text-align: center;'>fffff<br />jjjjj<br />fjfjfjfjfj</div><html>");
     JPanel ProgressPanel=new JPanel();
     Color [] colorTable = new Color [2*256];
     
