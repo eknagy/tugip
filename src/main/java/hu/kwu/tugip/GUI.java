@@ -20,7 +20,7 @@ public class GUI extends JFrame {
     
     JPanel VisualiserPanel=new JPanel();
     JPanel TextPanel=new JPanel(new BorderLayout());
-    JLabel TextLabel=new JLabel("<html><div style='text-align: center;'>fffff<br />jjjjj<br />fjfjfjfjfj</div><html>");
+    JLabel TextLabel=new JLabel("<html><div style='text-align: center;'>ffffff<br />jjjjjj<br />fjfjfjfjfj</div><html>");
     JPanel ProgressPanel=new JPanel();
     Color [] colorTable = new Color [2*256];
     
@@ -55,7 +55,7 @@ public class GUI extends JFrame {
         TextPanel.add(TextLabel, BorderLayout.CENTER);
 //        TextLabel.setBackground(Color.yellow);
 //        TextLabel.setOpaque(true);
-        TextLabel.setFont(new Font("Courier", Font.BOLD, 144));
+        TextLabel.setFont(new Font("Monospaced", Font.BOLD, 144));
         TextLabel.setVerticalAlignment(SwingConstants.CENTER);
         TextLabel.setHorizontalAlignment(SwingConstants.CENTER);
         ProgressPanel.setBackground(Color.MAGENTA);
