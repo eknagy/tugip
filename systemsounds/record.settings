@@ -1,1 +1,0 @@
-arecord -f S16_LE -c1 -r48000 -d 2 test.wav # d: duration, 16-bit low-endian 1-channel/mono sound, 48000 samples per second
