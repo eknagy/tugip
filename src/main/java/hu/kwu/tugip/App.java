@@ -5,6 +5,7 @@
 package hu.kwu.tugip;
 
 import java.io.IOException;
+import java.util.Arrays;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.sound.sampled.LineUnavailableException;
 
@@ -17,7 +18,17 @@ public class App {
         System.out.println("Starting up, Sounder and GUI already static initailized.");
         Lecturer L = new Lecturer("test_keys");
         System.out.println("Loaded Lecturer.");
-//        S.playOnSelectedLine(L.getHelloFileName());
-        S.playOnSelectedLine("systemsounds/tugip_hello.wav");
+        String [] HelloFileNames = L.getHelloFilesNames();
+        if ((null!= HelloFileNames) && (HelloFileNames.length>0)) {
+            System.out.println("Debug X: "+Arrays.toString(HelloFileNames));
+
+            for (String CS : HelloFileNames) {
+                S.syncPlayOnSelectedLine(CS);
+                System.out.println("Playing "+CS);
+            }
+        } else {
+            throw new RuntimeException("UNIMPLEMENTED! BEFORE_LECTURE is parsed to null or String[0].");
+        }
+//        S.playOnSelectedLine("systemsounds/tugip_hello.wav");
     }
 }

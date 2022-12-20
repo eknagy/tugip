@@ -5,27 +5,23 @@
 package hu.kwu.tugip;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
-import static javax.sound.sampled.AudioSystem.getMixer;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.Line;
 import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class Sounder {
+
     public final static int FPS = 10; // Frames per second - for the sound level visualization
 
-    ArrayList<SourceDataLine> GoodLines = new ArrayList();
     private static SourceDataLine SelectedLine = null;
 
     static final ByteBuffer BB; // We need not to have to fight with binary complements in 2-byte <=> short conversions
@@ -40,8 +36,8 @@ public class Sounder {
     }
 
     public Sounder(String FileNameForFormatDefiniton) {
- //       File IF = new File(FileNameForFormatDefiniton);
-        BufferedInputStream FIS=new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(FileNameForFormatDefiniton));
+        //       File IF = new File(FileNameForFormatDefiniton);
+        BufferedInputStream FIS = new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(FileNameForFormatDefiniton));
 
         try {
             AudioInputStream AIS = AudioSystem.getAudioInputStream(FIS);
@@ -81,21 +77,26 @@ public class Sounder {
                     }
                 }
             }
-*/
+             */
         } catch (LineUnavailableException | UnsupportedAudioFileException | IOException E) {
             AF = null;
             E.printStackTrace();
         }
     }
 
-    public void playOnSelectedLine(String FileName) throws LineUnavailableException, UnsupportedAudioFileException, IOException {
+    public void syncPlayOnSelectedLine(String FileName) throws LineUnavailableException, UnsupportedAudioFileException, IOException {
         if (SelectedLine == null) {
             throw new LineUnavailableException("SelectedLine==null");
         }
-        byte[] Buffer = loadWavToBuffer(FileName);   
-        new SounderThread(Buffer, SelectedLine).run();
+        byte[] Buffer = loadWavToBuffer(FileName);
+        SounderThread ST = new SounderThread(Buffer, SelectedLine);
+        ST.start();
+        try {
+            ST.join();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Sounder.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
-
 
     public static void autoIncreaseVolume(byte[] Buffer) {
         // We need to get the minimum and the maximum so we can see if we can turn on auto-volume-gain and to determine the gain ratio
@@ -137,26 +138,32 @@ public class Sounder {
     public static byte[] loadWavToBuffer(String FileName) throws UnsupportedAudioFileException, IOException {
 //        System.err.println("DEBUG SOUNDER1: "+ Thread.currentThread().getContextClassLoader().getResource (FileName));
 //        File IF = new File(FileName); System.err.println("DEBUG SOUNDER2: "+ IF.toString());
-        BufferedInputStream FIS=new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(FileName));
-        AudioInputStream AIS = AudioSystem.getAudioInputStream(FIS);
-        AudioFormat MAF = AIS.getFormat();
-        if (!AF.toString().equals(MAF.toString())) {
-            throw new UnsupportedAudioFileException("AF!=MAF: " + AF.toString() + " and " + MAF.toString());
+        System.out.println("Loading file " + FileName);
+        BufferedInputStream FIS = new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(FileName));
+        AudioInputStream AIS = null;
+        AudioFormat MAF = null;
+        try {
+            AIS = AudioSystem.getAudioInputStream(FIS);
+            MAF = AIS.getFormat();
+            if (!AF.toString().equals(MAF.toString())) {
+                throw new UnsupportedAudioFileException("AF!=MAF: " + AF.toString() + " and " + MAF.toString());
+            }
+        } catch (IOException | UnsupportedAudioFileException E) {
+            System.err.println(E.toString());
+            FIS = new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("systemsounds/hiba.wav"));
+            AIS = AudioSystem.getAudioInputStream(FIS);
         }
 
-        byte [] Buffer = new byte[AIS.available()];
+        byte[] Buffer = new byte[AIS.available()];
         double ALims = ((1000.0 * Buffer.length) / (AF.getFrameSize() * AF.getFrameRate())); //Audio Length in miliseconds
         AIS.read(Buffer);
         System.out.println("Red " + Buffer.length + " bytes from " + FIS.toString() + ", should be " + ALims + " miliseconds long, framesize is " + AF.getFrameSize());
 
-        int MyVisualSampleConstant = (int) (AF.getFrameRate() * AF.getFrameSize() / FPS);
-        if (MyVisualSampleConstant % 2 == 1) {
-            MyVisualSampleConstant--;
-        }
-
         if (AutoVolumeEnabled) {
             autoIncreaseVolume(Buffer);
         }
+        FIS.close();
+        AIS.close();
 
         return Buffer;
     }

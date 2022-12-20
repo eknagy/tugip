@@ -80,7 +80,7 @@ public class SounderThread extends Thread {
             SelectedLine.flush();
             SelectedLine.close();
             System.out.println("Finished playing.");
-            App.SingletonGUI.close();
+//            App.SingletonGUI.close();
         } catch (LineUnavailableException LUE) {
             System.err.println("LineUnavailableException: " + LUE); // LUE.printStackTrace();
         }

@@ -23,13 +23,21 @@ public class Lecturer {
         P.load(FIS);
     }
 
-    public String getHelloFileName() throws IOException{
+    public String [] getHelloFilesNames() throws IOException{
 /*        String HelloPathString = "lectures/" + this.LectureName + "/" + P.getProperty("BEFORE_LECTURE") + ".wav";
         Path HelloPath = Paths.get(HelloPathString);
         if ((!Files.exists(HelloPath)) || (!Files.isReadable(HelloPath)) || (!Files.isRegularFile(HelloPath))) {
               throw new IOException("Not {found, readable, a file}: "+HelloPath.toString()+" ("+HelloPathString+")");
         }
 */
-        return ("lectures/" + this.LectureName + "/" + P.getProperty("BEFORE_LECTURE") + ".wav");
+        String HelloFilesLine = P.getProperty("BEFORE_LECTURE");
+        String [] HelloFilesStrings = HelloFilesLine.split("\\s");
+        String [] HelloFilesNames = new String[HelloFilesStrings.length];
+        
+        for (int i=0; i< HelloFilesStrings.length; i++) {
+            HelloFilesNames[i]="lectures/" + this.LectureName + "/" + HelloFilesStrings[i] + ".wav";
+        }
+
+        return (HelloFilesNames);
     }
 }
