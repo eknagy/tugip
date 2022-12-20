@@ -40,7 +40,7 @@ public class SounderThread extends Thread {
             long MSPoffset=SelectedLine.getMicrosecondPosition(); // BugFix: Starts at wrong position for mono sounds on Debian 11
 
             long PrevMSP=SelectedLine.getMicrosecondPosition()-MSPoffset;
-            long MSP=PrevMSP;
+            long MSP;
 
             while (SelectedLine.isActive()) {
                 try {
@@ -80,11 +80,10 @@ public class SounderThread extends Thread {
             SelectedLine.flush();
             SelectedLine.close();
             System.out.println("Finished playing.");
-//            App.SingletonGUI.close();
         } catch (LineUnavailableException LUE) {
             System.err.println("LineUnavailableException: " + LUE); // LUE.printStackTrace();
         }
-        App.SingletonGUI.setIntensity(255, false);
+        App.SingletonGUI.setIntensity(0, true);
     }
 
 }

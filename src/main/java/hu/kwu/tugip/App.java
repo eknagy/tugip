@@ -26,6 +26,8 @@ public class App {
                 S.syncPlayOnSelectedLine(CS);
                 System.out.println("Playing "+CS);
             }
+            System.out.println("Finished ;)");
+            App.SingletonGUI.close();
         } else {
             throw new RuntimeException("UNIMPLEMENTED! BEFORE_LECTURE is parsed to null or String[0].");
         }
