@@ -11,21 +11,36 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
 public class SounderThread extends Thread {
-    byte[] Buffer;
-    SourceDataLine SelectedLine;
+    private byte[] Buffer;
+    private SourceDataLine SelectedLine;
+    private int stopKeyCode=-1;
+    private boolean shouldEnd=false;
     
-    public SounderThread(byte[] Buffer, SourceDataLine SelectedLine) {
+    public SounderThread(byte[] Buffer, SourceDataLine SelectedLine, int stopKeyCode) {
         this.Buffer=Buffer;
         this.SelectedLine=SelectedLine;
+        this.stopKeyCode=stopKeyCode;
+        App.SingletonGUI.registerSounderThread(this);
     }
 
+    public void keyDown(int stopKeyCode) {
+        if (stopKeyCode==this.stopKeyCode) {
+            shouldEnd=true;
+            SelectedLine.flush();
+            SelectedLine.close();
+            System.out.println("Aborted playing due to keypress.");
+            App.SingletonGUI.setIntensity(0, true);
+            App.SingletonGUI.unRegisterSounderThread(this);
+        }
+    }
+    
     @Override
     public void run() {
         int MinBufferSize=48000*1*2/10; // 48 kHz sampling, 1-channel, 2-byte samples, 0.1 sec buffer
         int WrittenSoFar=0;
         int SleepTime=1000/FPS;
         try {
-            System.out.println("Planning to play on line: " + SelectedLine.getLineInfo().toString());
+//            System.out.println("Planning to play on line: " + SelectedLine.getLineInfo().toString());
             SelectedLine.open(AF, Buffer.length);
             System.out.println("Line buffer size is " + SelectedLine.available() + " sound buffer size is " + Buffer.length+" and MinBufferSize is "+MinBufferSize);
             int bytesToWrite=Math.min(Buffer.length-WrittenSoFar, SelectedLine.available());
@@ -42,7 +57,7 @@ public class SounderThread extends Thread {
             long PrevMSP=SelectedLine.getMicrosecondPosition()-MSPoffset;
             long MSP;
 
-            while (SelectedLine.isActive()) {
+            while ((SelectedLine.isActive()) && (!shouldEnd)) {
                 try {
                     Thread.sleep(SleepTime);
                 } catch (InterruptedException IE) {
@@ -74,8 +89,6 @@ public class SounderThread extends Thread {
                 short Tmp = BB.getShort(0);
                 int VolumeLevel = Math.min(255, Math.abs(Tmp) / 32);
                 App.SingletonGUI.setIntensity(VolumeLevel, true);
-
-//                System.err.println("C is "+C+" and SL.gFP() is "+SelectedLine.getFramePosition()+" and SL.gMP() is " + SelectedLine.getMicrosecondPosition()+" and status is "+SelectedLine.isRunning()+" and "+SelectedLine.isActive());
             }
             SelectedLine.flush();
             SelectedLine.close();
@@ -84,6 +97,6 @@ public class SounderThread extends Thread {
             System.err.println("LineUnavailableException: " + LUE); // LUE.printStackTrace();
         }
         App.SingletonGUI.setIntensity(0, true);
+        App.SingletonGUI.unRegisterSounderThread(this);
     }
-
 }

@@ -4,11 +4,11 @@
  */
 package hu.kwu.tugip;
 
+import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.AudioFormat;
@@ -84,18 +84,34 @@ public class Sounder {
         }
     }
 
-    public void syncPlayOnSelectedLine(String FileName) throws LineUnavailableException, UnsupportedAudioFileException, IOException {
+    public void syncPlayOnSelectedLine(String FileName) {
+        syncPlayOnSelectedLine(FileName, KeyEvent.VK_SPACE);
+    }
+    
+    public void playOnSelectedLine(String FileName, int StopperKey, boolean enforceSync) {
         if (SelectedLine == null) {
-            throw new LineUnavailableException("SelectedLine==null");
+            App.SingletonGUI.setIntensity(255, false);
         }
-        byte[] Buffer = loadWavToBuffer(FileName);
-        SounderThread ST = new SounderThread(Buffer, SelectedLine);
-        ST.start();
+        byte[] Buffer = new byte[0];
         try {
-            ST.join();
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Sounder.class.getName()).log(Level.SEVERE, null, ex);
+            Buffer = loadWavToBuffer(FileName);
+        } catch (UnsupportedAudioFileException | IOException E) {
+            App.SingletonGUI.setIntensity(255, false);
         }
+        System.err.println("DEBUG: new ST("+FileName+","+StopperKey+").");
+        SounderThread ST = new SounderThread(Buffer, SelectedLine, StopperKey);
+        ST.start();
+        if (enforceSync) {
+            try {
+                ST.join();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Sounder.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    public void syncPlayOnSelectedLine(String FileName, int StopperKey) {
+        playOnSelectedLine(FileName, StopperKey, true);
     }
 
     public static void autoIncreaseVolume(byte[] Buffer) {
