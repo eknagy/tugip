@@ -4,125 +4,117 @@
  */
 package hu.kwu.tugip;
 
-import static hu.kwu.tugip.App.SingletonGUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 
 public class GUI extends JFrame {
 
-    private final static String PreText = "<html><div style='text-align: center;'><div style='background-color: green'>";
-    private final static String PostText = "</div><html>";
-    private final static String BeforeTargetLetter = "</div><div style='background-color: yellow'>";
-    private final static String AfterTargetLetter = "</div>";
+    private final static String PRETEXT = "<html><div style='text-align: center;'><div style='background-color: #C0FFC0'>";
+    private final static String POSTTEXT = "</div><html>";
+    private final static String BEFORETARGET = "</div><div style='background-color: yellow'>";
+    private final static String AFTERTARGET = "</div>";
 
-    private final static String TextToType = "fff jjj fjfjfj";
-    private static int TextTypedPosition = 0;
-
-    private static int GoodKeyCode = KeyEvent.VK_SPACE;
+    private static String textToType = "";
+    private static int textTypedPosition = 0;
 
     private static boolean acceptInput = false;
 
-    private static Sounder S;
-
     private JPanel VisualiserPanel = new JPanel();
     private JPanel TextPanel = new JPanel(new BorderLayout());
-    private JLabel TextLabel = new JLabel(PreText + PostText);
-    private JPanel ProgressPanel = new JPanel();
+    private JLabel TextLabel = new JLabel(PRETEXT + POSTTEXT);
+    private JPanel AboutPanel = new JPanel();
     private Color[] colorTable = new Color[2 * 256];
-    private HashSet<SounderThread> MySoundThreads = new HashSet<SounderThread>();
 
     public void regenerateText() {
-        if (TextToType.length() == 0) {
+        if (textToType.length() == 0) {
             return;
         }
         try {
-            System.err.println("DEBUG: " + TextTypedPosition + " " + TextToType.substring(0, TextTypedPosition));
-            TextLabel.setText(PreText + TextToType.substring(0, TextTypedPosition)
-                    + BeforeTargetLetter + TextToType.substring(TextTypedPosition, TextTypedPosition + 1)
-                    + AfterTargetLetter + TextToType.substring(TextTypedPosition + 1) + PostText);
+            // System.err.println("DEBUG: " + textTypedPosition + " " + textToType.substring(0, textTypedPosition));
+            TextLabel.setText(PRETEXT + textToType.substring(0, textTypedPosition)
+                    + BEFORETARGET + textToType.substring(textTypedPosition, textTypedPosition + 1)
+                    + AFTERTARGET + textToType.substring(textTypedPosition + 1) + POSTTEXT);
         } catch (IndexOutOfBoundsException I) {
-            System.err.println("DEBUG: " + TextTypedPosition + " IOOBE");
-            TextLabel.setText(PreText + TextToType + PostText);
+            // System.err.println("DEBUG: " + textTypedPosition + " IOOBE");
+            TextLabel.setText(PRETEXT + textToType + POSTTEXT);
         }
         TextLabel.updateUI();
     }
 
-    public void registerSounderThread(SounderThread ST) {
-        MySoundThreads.add(ST);
-        System.err.println("DEBUG: registering ST: " + ST.toString());
-    }
-
-    public void unRegisterSounderThread(SounderThread ST) {
-        MySoundThreads.remove(ST);
-        System.err.println("DEBUG: deregistering ST: " + ST.toString());
-    }
-
-    public void notifySounderThreads(int KeyCode) {
-        for (SounderThread ST : MySoundThreads) {
-            ST.keyDown(KeyCode);
-            System.err.println("DEBUG: notifying with " + KeyCode + " ST: " + ST.toString());
-        }
-    }
-
-    public void processKeyCode(int KeyCode) {
-        if (KeyCode == GoodKeyCode) {
-            notifySounderThreads(KeyCode);
-            if (acceptInput) {
-                TextTypedPosition++;
+    public void processKeyCode(int keyCode) {
+//        System.err.println("DEBUG: processKeyCode: in: "+keyCode);
+        if (acceptInput) {
+            if (Director.consumeKeyDown(keyCode)) {
+                textTypedPosition++;
                 regenerateText();
-                if (TextTypedPosition == TextToType.length()) {
-                    S.playOnSelectedLine("systemsounds/yuhuu.wav", KeyEvent.VK_SPACE, true);
-                    close();
-                } else {
-                    prepareGoodKeyCode();
-                }
             }
-        } else {
-            S.syncPlayOnSelectedLine("systemsounds/hiba.wav", -1);
         }
     }
 
-    public void startLecture() {
-        acceptInput = true;
+    public void startLecture(String[] helloFileNames) {
+        textToType = App.L.getNextLine();
         regenerateText();
-        prepareGoodKeyCode();
-    }
 
-    public void prepareGoodKeyCode() {
-        String NextChar = TextToType.substring(TextTypedPosition, TextTypedPosition + 1);
-        switch (NextChar) {
-            case " ":
-                NextChar = "space";
-                GoodKeyCode = KeyEvent.VK_SPACE;
-                break;
-            case "j":
-                GoodKeyCode = KeyEvent.VK_J;
-                break;
-            case "f":
-                GoodKeyCode = KeyEvent.VK_F;
-                break;
-            default:
-                System.err.println("Error: unhandled next char in Lecturer: " + NextChar);
+        int targetKeyCode = -1;
+
+        Director.addNew("systemsounds/yuhuu.wav", -2); // Director uses a stack (FILO) - victory sound first
+
+        for (int i = textToType.length() - 1; i >= 0; i--) {
+            String nextChar = textToType.substring(i, i + 1);
+            switch (nextChar) {
+                case " ":
+                    nextChar = "space";
+                    targetKeyCode = KeyEvent.VK_SPACE;
+                    break;
+                case "a":
+                    targetKeyCode = KeyEvent.VK_A;
+                    break;
+                case "d":
+                    targetKeyCode = KeyEvent.VK_D;
+                    break;
+                case "é":
+                    targetKeyCode = 16777449;
+                    break;
+                case "f":
+                    targetKeyCode = KeyEvent.VK_F;
+                    break;
+                case "j":
+                    targetKeyCode = KeyEvent.VK_J;
+                    break;
+                case "k":
+                    targetKeyCode = KeyEvent.VK_K;
+                    break;
+                case "l":
+                    targetKeyCode = KeyEvent.VK_L;
+                    break;
+                case "s":
+                    targetKeyCode = KeyEvent.VK_S;
+                    break;
+                default:
+                    System.err.println("Error: unhandled next char in GUI: " + nextChar);
+            }
+//            System.err.println("DEBUG: " + nextChar + " " + targetKeyCode);
+            Director.addNew(App.L.getWavDir() + nextChar + ".wav", targetKeyCode);
         }
 
-        S.playOnSelectedLine(App.L.getWavDir() + NextChar + ".wav", GoodKeyCode, false);
+        for (String CS : helloFileNames) {
+            Director.addNew(CS, -1);
+        }
+
+        acceptInput = true;
+        Director.play();
     }
 
     public void setIntensity(int Value, boolean isGreen) {
@@ -134,7 +126,6 @@ public class GUI extends JFrame {
     }
 
     public GUI(Sounder S) {
-        this.S = S;
         for (int i = 0; i < 256; i++) {
             colorTable[i] = new Color(i << 8);
             colorTable[i + 256] = new Color(i << 16);
@@ -151,36 +142,51 @@ public class GUI extends JFrame {
         GBC.weighty = 9;
         this.add(TextPanel, GBC);
         GBC.weighty = 1;
-        this.add(ProgressPanel, GBC);
-        pack();
-        setVisible(true);
+        this.add(AboutPanel, GBC);
+        AboutPanel.setBackground(Color.LIGHT_GRAY);
+
+        AboutPanel.setLayout(new GridLayout(2,1));
+        JPanel AboutUpperPanel=new JPanel(new GridLayout(1,4));
+        JPanel AboutLowerPanel=new JPanel(new GridLayout(1,2));
+        AboutPanel.add(AboutUpperPanel);
+        AboutPanel.add(AboutLowerPanel);
+        AboutUpperPanel.add(new JLabel("Tugip v. 0.1.0", SwingConstants.CENTER));
+        AboutUpperPanel.add(new JLabel("Gépírás tankönyv: Rácz Hajnalka", SwingConstants.CENTER));
+        AboutUpperPanel.add(new JLabel("Projektmenedzser: Dr. Nógrádi Judit", SwingConstants.CENTER));
+        AboutUpperPanel.add(new JLabel("Szoftverfejlesztő: Dr. Nagy Elemér Károly", SwingConstants.CENTER));
+        AboutLowerPanel.add(new JLabel("A projektet a Gyengénlátók Általános Iskolája, EGYMI és Kollégiuma támogatta.",SwingConstants.CENTER));
+        AboutLowerPanel.add(new JLabel("A projektet az FSF.hu Alapítvány a Szabad Szoftver Pályázat 2022 keretén belül támogatta.",SwingConstants.CENTER));
         TextPanel.setBackground(Color.white);
         TextPanel.add(TextLabel, BorderLayout.CENTER);
-//        TextLabel.setBackground(Color.yellow);
-//        TextLabel.setOpaque(true);
         TextLabel.setFont(new Font("Monospaced", Font.BOLD, 144));
         TextLabel.setVerticalAlignment(SwingConstants.CENTER);
         TextLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        ProgressPanel.setBackground(Color.MAGENTA);
+        pack();
+        setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
             @Override
             public boolean dispatchKeyEvent(KeyEvent KE) {
                 if (KE.getID() == KeyEvent.KEY_PRESSED) {
-                    switch (KE.getKeyCode()) {
+                    switch (KE.getExtendedKeyCode()) {
                         case KeyEvent.VK_SPACE:
+                        case KeyEvent.VK_A:
+                        case KeyEvent.VK_D:
                         case KeyEvent.VK_F:
                         case KeyEvent.VK_J:
-                            System.err.println("DEBUG: Sending KeyCode: " + KE.getKeyCode());
-                            processKeyCode(KE.getKeyCode());
+                        case KeyEvent.VK_K:
+                        case KeyEvent.VK_L:
+                        case KeyEvent.VK_S:
+                        case 16777449: // Hungarian é
+
+//                            System.err.println("DEBUG: Sending KeyCode: " + KE.getKeyCode());
+                            processKeyCode(KE.getExtendedKeyCode());
                             break;
                         default:
+                            System.err.println("DEBUG: Unknown KeyEvent: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
                             ; // Ignore
                     }
-                    return (true);
-                } else if (KE.getID() == KeyEvent.KEY_PRESSED) {
-                    System.err.println("DEBUG: Unhandled KeyEvent: " + KE.toString());
                     return (true);
                 }
                 return (false);

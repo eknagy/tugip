@@ -5,6 +5,7 @@
 package hu.kwu.tugip;
 
 import java.io.IOException;
+import java.util.Arrays;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.sound.sampled.LineUnavailableException;
 
@@ -15,21 +16,17 @@ public class App {
     public static Lecturer L;
     
     public static void main(String[] args) throws RuntimeException, ClassNotFoundException, UnsupportedAudioFileException, IOException, LineUnavailableException {
-        System.out.println("Starting up, Sounder and GUI already static initailized.");
+        System.out.println("Starting up, Sounder and GUI already static initialized.");
         L = new Lecturer("test_keys");
         System.out.println("Loaded Lecturer.");
         S.syncPlayOnSelectedLine("systemsounds/hello.wav");
 
         String [] HelloFileNames = L.getHelloFilesNames();
-        if ((null!= HelloFileNames) && (HelloFileNames.length>0)) {
-//            System.out.println("Debug X: "+Arrays.toString(HelloFileNames));
-
-            for (String CS : HelloFileNames) {
-                S.syncPlayOnSelectedLine(CS);
-            }
-            SingletonGUI.startLecture();
+        System.out.println("Debug HelloFileNames: "+Arrays.toString(HelloFileNames));
+        if ((null!= HelloFileNames) && (HelloFileNames.length==1)) {
+            SingletonGUI.startLecture(HelloFileNames);
         } else {
-            throw new RuntimeException("UNIMPLEMENTED! BEFORE_LECTURE is parsed to null or String[0].");
+            throw new RuntimeException("UNIMPLEMENTED! BEFORE_LECTURE is parsed to null or not single-item String array.");
         }
     }
 }

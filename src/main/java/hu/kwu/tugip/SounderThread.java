@@ -5,71 +5,72 @@
 package hu.kwu.tugip;
 
 import static hu.kwu.tugip.Sounder.AF;
-import static hu.kwu.tugip.Sounder.BB;
 import static hu.kwu.tugip.Sounder.FPS;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
 public class SounderThread extends Thread {
-    private byte[] Buffer;
-    private SourceDataLine SelectedLine;
-    private int stopKeyCode=-1;
-    private boolean shouldEnd=false;
-    
-    public SounderThread(byte[] Buffer, SourceDataLine SelectedLine, int stopKeyCode) {
-        this.Buffer=Buffer;
-        this.SelectedLine=SelectedLine;
-        this.stopKeyCode=stopKeyCode;
-        App.SingletonGUI.registerSounderThread(this);
+
+    private final byte[] Buffer;
+    private final SourceDataLine selectedLine;
+
+    private boolean shouldEnd = false;
+    private int WrittenSoFar = 0;
+    public static final int SLEEPTIME = 1000 / FPS;
+
+    public SounderThread(byte[] Buffer) {
+        this.Buffer = Buffer;
+        this.selectedLine = Sounder.selectedLine;
     }
 
-    public void keyDown(int stopKeyCode) {
-        if (stopKeyCode==this.stopKeyCode) {
-            shouldEnd=true;
-            SelectedLine.flush();
-            SelectedLine.close();
-            System.out.println("Aborted playing due to keypress.");
-            App.SingletonGUI.setIntensity(0, true);
-            App.SingletonGUI.unRegisterSounderThread(this);
-        }
+    public void endMyself() {
+        shouldEnd = true;
+        selectedLine.close();
+        App.SingletonGUI.setIntensity(0, true);
     }
-    
+
+    public void selfDestruct() {
+        selectedLine.flush();
+        endMyself();
+//        System.out.println("SounderThread self-destructing.");
+    }
+
     @Override
     public void run() {
-        int MinBufferSize=48000*1*2/10; // 48 kHz sampling, 1-channel, 2-byte samples, 0.1 sec buffer
-        int WrittenSoFar=0;
-        int SleepTime=1000/FPS;
+        int MinBufferSize = 48000 * 1 * 2 / 10; // 48 kHz sampling, 1-channel, 2-byte samples, 0.1 sec buffer
         try {
 //            System.out.println("Planning to play on line: " + SelectedLine.getLineInfo().toString());
-            SelectedLine.open(AF, Buffer.length);
-            System.out.println("Line buffer size is " + SelectedLine.available() + " sound buffer size is " + Buffer.length+" and MinBufferSize is "+MinBufferSize);
-            int bytesToWrite=Math.min(Buffer.length-WrittenSoFar, SelectedLine.available());
-//            System.out.println("Initial write of " + bytesToWrite + " bytes, "+(Buffer.length-WrittenSoFar-bytesToWrite)+" bytes left.");
-            SelectedLine.write(Buffer, WrittenSoFar, bytesToWrite);
-            WrittenSoFar+=bytesToWrite;
+            selectedLine.open(AF, Buffer.length);
+//            System.out.println("Line buffer size is " + selectedLine.available() + " sound buffer size is " + Buffer.length + " and MinBufferSize is " + MinBufferSize);
+            int bytesToWrite = Math.min(Buffer.length - WrittenSoFar, selectedLine.available());
+//            System.out.println("Initial write of " + bytesToWrite + " bytes, " + (Buffer.length - WrittenSoFar - bytesToWrite) + " bytes left.");
+            selectedLine.write(Buffer, WrittenSoFar, bytesToWrite);
+            WrittenSoFar += bytesToWrite;
 
-            SelectedLine.start();
+            selectedLine.start(); // Does nothing on Debian 11?
 
-            double ALis = (1000*((double)Buffer.length)) / (AF.getFrameSize() * AF.getFrameRate()); //Audio Length in miliseconds
-
-            long MSPoffset=SelectedLine.getMicrosecondPosition(); // BugFix: Starts at wrong position for mono sounds on Debian 11
-
-            long PrevMSP=SelectedLine.getMicrosecondPosition()-MSPoffset;
-            long MSP;
-
-            while ((SelectedLine.isActive()) && (!shouldEnd)) {
+//            double ALis = (1000*((double)Buffer.length)) / (AF.getFrameSize() * AF.getFrameRate()); //Audio Length in miliseconds
+//            long MSPoffset=selectedLine.getMicrosecondPosition(); // BugFix: Starts at wrong position for mono sounds on Debian 11
+//            long PrevMSP=selectedLine.getMicrosecondPosition()-MSPoffset;
+//            long MSP;
+            while ((selectedLine.isActive()) && (!shouldEnd)) {
                 try {
-                    Thread.sleep(SleepTime);
+                    Thread.sleep(SLEEPTIME);
                 } catch (InterruptedException IE) {
                     System.out.println("Interrupted.");
                 }
-                if (WrittenSoFar<Buffer.length) { // BugFix: Windows 10 has tiny buffers
-                    bytesToWrite=Math.min(Buffer.length-WrittenSoFar, SelectedLine.available());
-//                    System.out.println("Write of " + bytesToWrite + " bytes, "+(Buffer.length-WrittenSoFar-bytesToWrite)+" bytes left.");
-                    SelectedLine.write(Buffer, WrittenSoFar, bytesToWrite);
-                    WrittenSoFar+=bytesToWrite;
+                if (WrittenSoFar < Buffer.length) { // BugFix: Windows 10 has tiny buffers
+                    bytesToWrite = Math.min(Buffer.length - WrittenSoFar, selectedLine.available());
+//                    System.out.println("Write of " + bytesToWrite + " bytes, " + (Buffer.length - WrittenSoFar - bytesToWrite) + " bytes left.");
+                    selectedLine.write(Buffer, WrittenSoFar, bytesToWrite);
+                    WrittenSoFar += bytesToWrite;
+                } else {
+//                    System.err.println("Nothing to write, draining...");
+                    selectedLine.drain();
+//                    System.err.println("selectedLine.drain() finished, stopping.");
+                    endMyself();
                 }
-
+                /*
                 // Calculate our visual sample point's position
                 double Ratio=PrevMSP/1000/ALis;
                 int C=(int)(Buffer.length*Ratio);
@@ -78,7 +79,7 @@ public class SounderThread extends Thread {
                 if (C%2==1) {C--;}
                 if (C<0) {C=0;}
 
-                MSP=SelectedLine.getMicrosecondPosition()-MSPoffset;
+                MSP=selectedLine.getMicrosecondPosition()-MSPoffset;
                 if (MSP<=PrevMSP) { // BugFix: Line can remain open after playback, with invalid time/frame positions
                     break;
                 } else {
@@ -89,14 +90,9 @@ public class SounderThread extends Thread {
                 short Tmp = BB.getShort(0);
                 int VolumeLevel = Math.min(255, Math.abs(Tmp) / 32);
                 App.SingletonGUI.setIntensity(VolumeLevel, true);
-            }
-            SelectedLine.flush();
-            SelectedLine.close();
-            System.out.println("Finished playing.");
+                 */            }
         } catch (LineUnavailableException LUE) {
             System.err.println("LineUnavailableException: " + LUE); // LUE.printStackTrace();
         }
-        App.SingletonGUI.setIntensity(0, true);
-        App.SingletonGUI.unRegisterSounderThread(this);
     }
 }

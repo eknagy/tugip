@@ -25,6 +25,10 @@ public class Lecturer {
         return WavDir;
     }
     
+    public String getNextLine() {
+        return P.getProperty("TEXT_1", "");
+    }
+    
     public String [] getHelloFilesNames() throws IOException{
 /*        String HelloPathString = "lectures/" + this.LectureName + "/" + P.getProperty("BEFORE_LECTURE") + ".wav";
         Path HelloPath = Paths.get(HelloPathString);
@@ -32,7 +36,7 @@ public class Lecturer {
               throw new IOException("Not {found, readable, a file}: "+HelloPath.toString()+" ("+HelloPathString+")");
         }
 */
-        String HelloFilesLine = P.getProperty("BEFORE_LECTURE");
+        String HelloFilesLine = P.getProperty("BEFORE_LECTURE", "hello");
         String [] HelloFilesStrings = HelloFilesLine.split("\\s");
         String [] HelloFilesNames = new String[HelloFilesStrings.length];
         

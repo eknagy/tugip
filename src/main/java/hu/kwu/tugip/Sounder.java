@@ -22,7 +22,7 @@ public class Sounder {
 
     public final static int FPS = 10; // Frames per second - for the sound level visualization
 
-    private static SourceDataLine SelectedLine = null;
+    static SourceDataLine selectedLine = null;
 
     static final ByteBuffer BB; // We need not to have to fight with binary complements in 2-byte <=> short conversions
 
@@ -42,7 +42,8 @@ public class Sounder {
         try {
             AudioInputStream AIS = AudioSystem.getAudioInputStream(FIS);
             AF = AIS.getFormat();
-            SelectedLine = AudioSystem.getSourceDataLine(AF);
+            selectedLine = AudioSystem.getSourceDataLine(AF);
+
 //            System.err.println("DEBUG OVERRIDE: "+SelectedLine.toString());
 /*
             DataLine.Info DLI = new DataLine.Info(SourceDataLine.class, AF);
@@ -87,9 +88,9 @@ public class Sounder {
     public void syncPlayOnSelectedLine(String FileName) {
         syncPlayOnSelectedLine(FileName, KeyEvent.VK_SPACE);
     }
-    
+
     public void playOnSelectedLine(String FileName, int StopperKey, boolean enforceSync) {
-        if (SelectedLine == null) {
+        if (selectedLine == null) {
             App.SingletonGUI.setIntensity(255, false);
         }
         byte[] Buffer = new byte[0];
@@ -98,8 +99,7 @@ public class Sounder {
         } catch (UnsupportedAudioFileException | IOException E) {
             App.SingletonGUI.setIntensity(255, false);
         }
-        System.err.println("DEBUG: new ST("+FileName+","+StopperKey+").");
-        SounderThread ST = new SounderThread(Buffer, SelectedLine, StopperKey);
+        SounderThread ST = new SounderThread(Buffer);
         ST.start();
         if (enforceSync) {
             try {
@@ -137,7 +137,7 @@ public class Sounder {
             int Absolut = ((Min * -1) > Max) ? (Min * -1) : Max;
             short Ratio = (short) (Short.MAX_VALUE / Absolut);
             if (Ratio > 1) {
-                System.out.println("AutoVolume constant is: " + Ratio); // TODO:FIXME: read maximum permitted ratio from config
+//                System.out.println("AutoVolume constant is: " + Ratio); // TODO:FIXME: read maximum permitted ratio from config
                 for (int i = 0; i < Buffer.length; i += 2) {
                     BB.order(ByteOrder.LITTLE_ENDIAN);
                     BB.put(0, Buffer[i]);
@@ -154,7 +154,7 @@ public class Sounder {
     public static byte[] loadWavToBuffer(String FileName) throws UnsupportedAudioFileException, IOException {
 //        System.err.println("DEBUG SOUNDER1: "+ Thread.currentThread().getContextClassLoader().getResource (FileName));
 //        File IF = new File(FileName); System.err.println("DEBUG SOUNDER2: "+ IF.toString());
-        System.out.println("Loading file " + FileName);
+//        System.out.println("Loading file " + FileName);
         BufferedInputStream FIS = new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(FileName));
         AudioInputStream AIS = null;
         AudioFormat MAF = null;
@@ -173,7 +173,7 @@ public class Sounder {
         byte[] Buffer = new byte[AIS.available()];
         double ALims = ((1000.0 * Buffer.length) / (AF.getFrameSize() * AF.getFrameRate())); //Audio Length in miliseconds
         AIS.read(Buffer);
-        System.out.println("Red " + Buffer.length + " bytes from " + FIS.toString() + ", should be " + ALims + " miliseconds long, framesize is " + AF.getFrameSize());
+//        System.out.println("Red " + Buffer.length + " bytes from " + FIS.toString() + ", should be " + ALims + " miliseconds long, framesize is " + AF.getFrameSize());
 
         if (AutoVolumeEnabled) {
             autoIncreaseVolume(Buffer);
