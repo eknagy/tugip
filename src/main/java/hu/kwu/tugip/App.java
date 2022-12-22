@@ -5,7 +5,6 @@
 package hu.kwu.tugip;
 
 import java.io.IOException;
-import java.util.Arrays;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.sound.sampled.LineUnavailableException;
 
@@ -20,11 +19,10 @@ public class App {
     public static void main(String[] args) throws RuntimeException, ClassNotFoundException, UnsupportedAudioFileException, IOException, LineUnavailableException {
         System.out.println("Starting up, Sounder and GUI already static initialized.");
         L = new Lecturer("test_keys");
-        System.out.println("Loaded Lecturer.");
         S.syncPlayOnSelectedLine("systemsounds/hello.wav");
 
         String [] HelloFileNames = L.getHelloFilesNames();
-        System.out.println("Debug HelloFileNames: "+Arrays.toString(HelloFileNames));
+//        System.out.println("Debug HelloFileNames: "+Arrays.toString(HelloFileNames));
         if ((null!= HelloFileNames) && (HelloFileNames.length==1)) {
             SingletonGUI.startLecture(HelloFileNames);
         } else {

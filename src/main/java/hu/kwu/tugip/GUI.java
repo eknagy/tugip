@@ -14,9 +14,6 @@ import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -57,7 +54,7 @@ public class GUI extends JFrame {
                     + BEFORETARGET + textToType.substring(textTypedPosition, textTypedPosition + 1)
                     + AFTERTARGET + textToType.substring(textTypedPosition + 1) + POSTTEXT);
         } catch (IndexOutOfBoundsException I) {
-            System.err.println("DEBUG: " + textTypedPosition + " IOOBE");
+//            System.err.println("DEBUG: " + textTypedPosition + " IOOBE");
             textLabel.setText(PRETEXT + textToType + POSTTEXT);
         }
         textLabel.updateUI();

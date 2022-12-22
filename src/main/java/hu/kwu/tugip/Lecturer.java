@@ -6,7 +6,6 @@ package hu.kwu.tugip;
 
 import java.awt.Color;
 import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 import javax.swing.JLabel;
