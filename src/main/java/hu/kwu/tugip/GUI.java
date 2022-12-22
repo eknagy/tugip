@@ -14,6 +14,9 @@ import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,13 +32,20 @@ public class GUI extends JFrame {
     private static String textToType = "";
     private static int textTypedPosition = 0;
 
+    private final static Font FONT144 = new Font("Monospaced", Font.BOLD, 144);
+    private final static Font FONT36 = new Font("Monospaced", Font.BOLD, 36);
+
     private static boolean acceptInput = false;
 
-    private JPanel VisualiserPanel = new JPanel();
-    private JPanel TextPanel = new JPanel(new BorderLayout());
-    private JLabel TextLabel = new JLabel(PRETEXT + POSTTEXT);
-    private JPanel AboutPanel = new JPanel();
-    private Color[] colorTable = new Color[2 * 256];
+    private final JPanel northPanel = new JPanel(new GridLayout(1, 4));
+    private final JLabel goodPointCount = new JLabel("0", SwingConstants.CENTER);
+    private final JLabel badPointCount = new JLabel("0", SwingConstants.CENTER);
+    private final JLabel passLabel = new JLabel("??% (??%)", SwingConstants.CENTER);
+    private final JPanel visualiserPanel = new JPanel();
+    private final JPanel textPanel = new JPanel(new BorderLayout());
+    private final JLabel textLabel = new JLabel(PRETEXT + POSTTEXT);
+    private final JPanel aboutPanel = new JPanel(new GridLayout(2, 1));
+    private final Color[] colorTable = new Color[2 * 256];
 
     public void regenerateText() {
         if (textToType.length() == 0) {
@@ -43,22 +53,27 @@ public class GUI extends JFrame {
         }
         try {
             // System.err.println("DEBUG: " + textTypedPosition + " " + textToType.substring(0, textTypedPosition));
-            TextLabel.setText(PRETEXT + textToType.substring(0, textTypedPosition)
+            textLabel.setText(PRETEXT + textToType.substring(0, textTypedPosition)
                     + BEFORETARGET + textToType.substring(textTypedPosition, textTypedPosition + 1)
                     + AFTERTARGET + textToType.substring(textTypedPosition + 1) + POSTTEXT);
         } catch (IndexOutOfBoundsException I) {
-            // System.err.println("DEBUG: " + textTypedPosition + " IOOBE");
-            TextLabel.setText(PRETEXT + textToType + POSTTEXT);
+            System.err.println("DEBUG: " + textTypedPosition + " IOOBE");
+            textLabel.setText(PRETEXT + textToType + POSTTEXT);
         }
-        TextLabel.updateUI();
+        textLabel.updateUI();
     }
 
     public void processKeyCode(int keyCode) {
-//        System.err.println("DEBUG: processKeyCode: in: "+keyCode);
         if (acceptInput) {
             if (Director.consumeKeyDown(keyCode)) {
                 textTypedPosition++;
                 regenerateText();
+            }
+            App.L.regeneratePassPanel(passLabel);
+            goodPointCount.setText("" + App.L.goodCount);
+            badPointCount.setText("" + App.L.badCount);
+            if (textTypedPosition==textToType.length()) {
+                Director.consumeKeyDown(KeyEvent.VK_SPACE);
             }
         }
     }
@@ -67,10 +82,26 @@ public class GUI extends JFrame {
         textToType = App.L.getNextLine();
         regenerateText();
 
+        App.L.regeneratePassPanel(passLabel);
+
         int targetKeyCode = -1;
 
-        Director.addNew("systemsounds/yuhuu.wav", -2); // Director uses a stack (FILO) - victory sound first
+        Director.addNew(null, -3); // Director uses a stack (FILO) - "generate results" command first
+/*        if (true) {
+            Stack<String> tmpStack = new Stack<>();
 
+            Director.addNew(App.SYSTEMSOUNDDIR+"hello.wav", -2);
+            for (int i = 100; i >=0; i--) {
+                for (String CS : generateNumberFileNames(i)) {
+                    Director.addNew(App.NUMBERSSOUNDDIR + CS + ".wav", -2);
+                }
+            }
+            generateEnding(1,2,4,3);
+            acceptInput = true;
+            Director.play();
+            return;
+        }
+*/
         for (int i = textToType.length() - 1; i >= 0; i--) {
             String nextChar = textToType.substring(i, i + 1);
             switch (nextChar) {
@@ -121,56 +152,18 @@ public class GUI extends JFrame {
         if ((Value < 0) || (Value > 255)) {
             throw new RuntimeException("GUI.setIntensity() Value is " + Value);
         }
-        VisualiserPanel.setBackground(colorTable[Value + (isGreen ? 0 : 256)]);
-        VisualiserPanel.updateUI();
+        visualiserPanel.setBackground(colorTable[Value + (isGreen ? 0 : 256)]);
+        visualiserPanel.updateUI();
     }
 
-    public GUI(Sounder S) {
-        for (int i = 0; i < 256; i++) {
-            colorTable[i] = new Color(i << 8);
-            colorTable[i + 256] = new Color(i << 16);
-        }
-        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        GridBagLayout GBL = new GridBagLayout();
-        this.setLayout(GBL);
-        GridBagConstraints GBC = new GridBagConstraints();
-        GBC.gridx = 1;
-        GBC.fill = GridBagConstraints.BOTH;
-        GBC.weightx = 1;
-        GBC.weighty = 3;
-        this.add(VisualiserPanel, GBC);
-        GBC.weighty = 9;
-        this.add(TextPanel, GBC);
-        GBC.weighty = 1;
-        this.add(AboutPanel, GBC);
-        AboutPanel.setBackground(Color.LIGHT_GRAY);
-
-        AboutPanel.setLayout(new GridLayout(2,1));
-        JPanel AboutUpperPanel=new JPanel(new GridLayout(1,4));
-        JPanel AboutLowerPanel=new JPanel(new GridLayout(1,2));
-        AboutPanel.add(AboutUpperPanel);
-        AboutPanel.add(AboutLowerPanel);
-        AboutUpperPanel.add(new JLabel("Tugip v. 0.1.0", SwingConstants.CENTER));
-        AboutUpperPanel.add(new JLabel("Gépírás tankönyv: Rácz Hajnalka", SwingConstants.CENTER));
-        AboutUpperPanel.add(new JLabel("Projektmenedzser: Dr. Nógrádi Judit", SwingConstants.CENTER));
-        AboutUpperPanel.add(new JLabel("Szoftverfejlesztő: Dr. Nagy Elemér Károly", SwingConstants.CENTER));
-        AboutLowerPanel.add(new JLabel("A projektet a Gyengénlátók Általános Iskolája, EGYMI és Kollégiuma támogatta.",SwingConstants.CENTER));
-        AboutLowerPanel.add(new JLabel("A projektet az FSF.hu Alapítvány a Szabad Szoftver Pályázat 2022 keretén belül támogatta.",SwingConstants.CENTER));
-        TextPanel.setBackground(Color.white);
-        TextPanel.add(TextLabel, BorderLayout.CENTER);
-        TextLabel.setFont(new Font("Monospaced", Font.BOLD, 144));
-        TextLabel.setVerticalAlignment(SwingConstants.CENTER);
-        TextLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        pack();
-        setVisible(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+    public void registerKeyHandler() {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
             @Override
             public boolean dispatchKeyEvent(KeyEvent KE) {
                 if (KE.getID() == KeyEvent.KEY_PRESSED) {
                     switch (KE.getExtendedKeyCode()) {
                         case KeyEvent.VK_SPACE:
+                        case KeyEvent.VK_ESCAPE:
                         case KeyEvent.VK_A:
                         case KeyEvent.VK_D:
                         case KeyEvent.VK_F:
@@ -179,19 +172,84 @@ public class GUI extends JFrame {
                         case KeyEvent.VK_L:
                         case KeyEvent.VK_S:
                         case 16777449: // Hungarian é
-
-//                            System.err.println("DEBUG: Sending KeyCode: " + KE.getKeyCode());
                             processKeyCode(KE.getExtendedKeyCode());
+                            break;
+                        case KeyEvent.VK_CAPS_LOCK:
+                        case KeyEvent.VK_SHIFT:
+                            textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
                             break;
                         default:
                             System.err.println("DEBUG: Unknown KeyEvent: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
                             ; // Ignore
                     }
                     return (true);
+                } else if ((KE.getID() == KeyEvent.KEY_RELEASED) && (KE.getExtendedKeyCode() == KeyEvent.VK_SHIFT)) {
+                    textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
                 }
                 return (false);
             }
         });
+
+    }
+
+    public GUI(Sounder S) {
+        for (int i = 0; i < 256; i++) {
+            colorTable[i] = new Color(i << 8);
+            colorTable[i + 256] = new Color(i << 16);
+        }
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+        goodPointCount.setForeground(Color.GREEN);
+        goodPointCount.setBackground(Color.WHITE);
+        goodPointCount.setOpaque(true);
+        goodPointCount.setFont(FONT36);
+        northPanel.add(goodPointCount);
+        badPointCount.setForeground(Color.RED);
+        badPointCount.setBackground(Color.WHITE);
+        badPointCount.setOpaque(true);
+        badPointCount.setFont(FONT36);
+        northPanel.add(badPointCount);
+        passLabel.setForeground(Color.BLACK);
+        passLabel.setBackground(Color.WHITE);
+        passLabel.setOpaque(true);
+        passLabel.setFont(FONT36);
+        northPanel.add(passLabel);
+        northPanel.add(visualiserPanel);
+
+        GridBagLayout GBL = new GridBagLayout();
+        this.setLayout(GBL);
+        GridBagConstraints GBC = new GridBagConstraints();
+        GBC.gridx = 1;
+        GBC.fill = GridBagConstraints.BOTH;
+        GBC.weightx = 1;
+        GBC.weighty = 0.5;
+        this.add(northPanel, GBC);
+        GBC.weighty = 20;
+        this.add(textPanel, GBC);
+        GBC.weighty = 1;
+        this.add(aboutPanel, GBC);
+        aboutPanel.setBackground(Color.LIGHT_GRAY);
+
+        JPanel aboutUpperPanel = new JPanel(new GridLayout(1, 4));
+        JPanel aboutLowerPanel = new JPanel(new GridLayout(1, 2));
+        aboutPanel.add(aboutUpperPanel);
+        aboutPanel.add(aboutLowerPanel);
+        aboutUpperPanel.add(new JLabel("Tugip v. 0.2.0", SwingConstants.CENTER));
+        aboutUpperPanel.add(new JLabel("Gépírás tankönyv: Rácz Hajnalka", SwingConstants.CENTER));
+        aboutUpperPanel.add(new JLabel("Projektmenedzser: Dr. Nógrádi Judit", SwingConstants.CENTER));
+        aboutUpperPanel.add(new JLabel("Szoftverfejlesztő: Dr. Nagy Elemér Károly", SwingConstants.CENTER));
+        aboutLowerPanel.add(new JLabel("A projektet a Gyengénlátók Általános Iskolája, EGYMI és Kollégiuma támogatta.", SwingConstants.CENTER));
+        aboutLowerPanel.add(new JLabel("A projektet az FSF.hu Alapítvány a Szabad Szoftver Pályázat 2022 keretén belül támogatta.", SwingConstants.CENTER));
+        textPanel.setBackground(Color.WHITE);
+        textPanel.add(textLabel, BorderLayout.CENTER);
+        textLabel.setFont(FONT144);
+        textLabel.setVerticalAlignment(SwingConstants.CENTER);
+        textLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        pack();
+        setVisible(true);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        registerKeyHandler();
     }
 
     public void close() {

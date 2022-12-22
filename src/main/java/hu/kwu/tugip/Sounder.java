@@ -151,11 +151,11 @@ public class Sounder {
         }
     }
 
-    public static byte[] loadWavToBuffer(String FileName) throws UnsupportedAudioFileException, IOException {
+    public static byte[] loadWavToBuffer(String fileName) throws UnsupportedAudioFileException, IOException {
 //        System.err.println("DEBUG SOUNDER1: "+ Thread.currentThread().getContextClassLoader().getResource (FileName));
 //        File IF = new File(FileName); System.err.println("DEBUG SOUNDER2: "+ IF.toString());
 //        System.out.println("Loading file " + FileName);
-        BufferedInputStream FIS = new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(FileName));
+        BufferedInputStream FIS = new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName));
         AudioInputStream AIS = null;
         AudioFormat MAF = null;
         try {
@@ -165,7 +165,7 @@ public class Sounder {
                 throw new UnsupportedAudioFileException("AF!=MAF: " + AF.toString() + " and " + MAF.toString());
             }
         } catch (IOException | UnsupportedAudioFileException E) {
-            System.err.println(E.toString());
+            System.err.println("Exception in loadWavToBuffer(" + fileName + "): " + E.toString());
             FIS = new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("systemsounds/hiba.wav"));
             AIS = AudioSystem.getAudioInputStream(FIS);
         }

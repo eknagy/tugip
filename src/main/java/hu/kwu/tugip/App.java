@@ -11,7 +11,9 @@ import javax.sound.sampled.LineUnavailableException;
 
 public class App {
 
-    public final static Sounder S = new Sounder("systemsounds/hello.wav");
+    public final static String SYSTEMSOUNDDIR="systemsounds/";
+    public final static String NUMBERSSOUNDDIR="numbers/";
+    public final static Sounder S = new Sounder(SYSTEMSOUNDDIR+"hello.wav");
     public final static GUI SingletonGUI = new GUI(S);
     public static Lecturer L;
     
