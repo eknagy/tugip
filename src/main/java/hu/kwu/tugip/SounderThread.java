@@ -14,6 +14,7 @@ public class SounderThread extends Thread {
     private final byte[] Buffer;
     private final SourceDataLine selectedLine;
 
+    public boolean started = false;
     private boolean shouldEnd = false;
     private int WrittenSoFar = 0;
     public static final int SLEEPTIME = 1000 / FPS;
@@ -37,7 +38,8 @@ public class SounderThread extends Thread {
 
     @Override
     public void run() {
-        int MinBufferSize = 48000 * 1 * 2 / 10; // 48 kHz sampling, 1-channel, 2-byte samples, 0.1 sec buffer
+        started=true;
+//        int MinBufferSize = 48000 * 1 * 2 / 10; // 48 kHz sampling, 1-channel, 2-byte samples, 0.1 sec buffer
         try {
 //            System.out.println("Planning to play on line: " + SelectedLine.getLineInfo().toString());
             selectedLine.open(AF, Buffer.length);

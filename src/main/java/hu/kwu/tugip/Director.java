@@ -24,15 +24,57 @@ public class Director {
     private int targetKeyCode = -1;
     private byte[] wavBuffer = null;
     private SounderThread mySounderThread = null;
+    private String wavFileName = null;
+    private boolean playing = false;
 
-    public static void play() {
-        Director current = directorStack.peek();
-        if (null == current) {
-            System.err.println("DEBUG: D.play() but empty.");
-            return;
+    @Override
+    public String toString() {
+        return super.toString() + " " + targetKeyCode + " " + wavFileName + (isPlaying() ? " (playing)" : "");
+    }
+
+    public boolean isPlaying() {
+        return (playing);
+    }
+
+    public static void refreshDebug() {
+        App.SingletonGUI.D.setText(Director.toStringAll());
+        App.SingletonGUI.D.repaint();
+    }
+
+    public static String toStringAll() {
+        StringBuilder retVal = new StringBuilder();
+        for (int i = directorStack.size() - 1; i >= 0; i--) {
+            retVal.append(directorStack.get(i).toString());
+            retVal.append("\n");
         }
-//        System.err.println("DEBUG: D.play(): " + current.toString());
-        current.mySounderThread.start();
+        return (retVal.toString());
+    }
+
+    public static void playFirst() {
+        if (!directorStack.empty()) {
+            directorStack.peek().play();
+        }
+    }
+
+    public void stoppedPlaying() {
+        playing = false;
+        refreshDebug();
+    }
+
+    public void play() {
+        if (targetKeyCode == -4) {
+            consumeKeyDown(KeyEvent.VK_ESCAPE);
+        } else if (targetKeyCode == -3) {
+            consumeKeyDown(KeyEvent.VK_SPACE);
+        } else if ((mySounderThread != null) && (!mySounderThread.isAlive()) && (!mySounderThread.started)) {
+            try {
+                mySounderThread.start();
+            } catch (IllegalThreadStateException E) {
+                System.err.println("DEBUG: Why is this happening? E: " + E.toString());
+            }
+            directorStack.peek().playing = true;
+            refreshDebug();
+        }
     }
 
     static {
@@ -41,17 +83,19 @@ public class Director {
         selectedLine.addLineListener(new LineListener() {
             @Override
             public void update(LineEvent le) {
-                // If we close a line (sound ended) and the first Director is an error sound (has a 0 KeyCode) then we start the next one.
+//                System.err.println("DEBUG: le: "+le);
+                // If we close a line (sound ended) and the first Director is an error sound or a skippables sound (has a 0 or -2 KeyCode) then we remove it and start the next one.
                 if (le.getType() == LineEvent.Type.CLOSE) {
+//                    System.err.println("DEBUG: CL: "+le);
                     if (!directorStack.empty()) {
                         Director first = directorStack.peek();
+                        first.stoppedPlaying();
+
                         if ((first.targetKeyCode == 0) || (first.targetKeyCode == -2)) {
-                            directorStack.pop().mySounderThread.selfDestruct();
+                            first.selfDestruct();
+
                             if (!directorStack.empty()) {
-                                SounderThread NST = directorStack.peek().mySounderThread;
-                                if ((NST != null) && (!NST.isAlive())) {
-                                    NST.start();
-                                }
+                                directorStack.peek().play();
                             }
                         }
                     }
@@ -60,7 +104,8 @@ public class Director {
         });
     }
 
-    public Director(String wavFileName, int targetKeyCode) {
+    private Director(String wavFileName, int targetKeyCode) {
+        this.wavFileName = wavFileName;
         if (wavFileName == null) { // No sound file, this is a special command Director (like "evaluate typist")
             this.targetKeyCode = targetKeyCode;
             mySounderThread = null;
@@ -68,9 +113,9 @@ public class Director {
             this.targetKeyCode = targetKeyCode;
             if (wavBufferLookUpTable.containsKey(wavFileName)) {
                 wavBuffer = wavBufferLookUpTable.get(wavFileName);
-                System.err.println("DEBUG Director: looked up " + wavFileName + " with " + targetKeyCode + " as " + this.toString());
+                System.err.println("DEBUG Director: lookup " + this.toString());
             } else {
-                System.err.println("DEBUG Director: loading " + wavFileName + " with " + targetKeyCode + " as " + this.toString());
+                System.err.println("DEBUG Director: load   " + this.toString());
                 try {
                     wavBuffer = loadWavToBuffer(wavFileName);
                     wavBufferLookUpTable.put(wavFileName, wavBuffer);
@@ -85,14 +130,15 @@ public class Director {
 
     public static void addNew(String wavFileName, int targetKeyCode) {
         directorStack.push(new Director(wavFileName, targetKeyCode));
+        refreshDebug();
     }
 
-    public static void selfDestruct() {
-        while (!directorStack.isEmpty()) {
-            Director current = directorStack.pop();
-            current.mySounderThread.selfDestruct();
-            App.SingletonGUI.close();
+    public void selfDestruct() {
+        directorStack.remove(this);
+        if (mySounderThread != null) {
+            mySounderThread.selfDestruct();
         }
+        refreshDebug();
     }
 
     public static String[] generateNumberFileNames(int input) {
@@ -125,8 +171,9 @@ public class Director {
         return tmpDeque.toArray(new String[0]);
     }
 
-    public static void generateEnding(int goodPoints, int badPoints, int currentPercent, int targetPercent) {
+    public static void generateAnalysis(int goodPoints, int badPoints, int currentPercent, int targetPercent) {
         // "0 jo es 0 rossz leutesed volt az eredmenyed 0 szazalek ez a lecke 0 szazalektol sikeres"
+        Director.addNew(null, -4);
         Director.addNew(App.SYSTEMSOUNDDIR + (currentPercent >= targetPercent ? "yuhuu" : "ooo") + ".wav", -2);
         for (String CS : generateTextFileNames("szazalektol sikeres")) {
             Director.addNew(App.SYSTEMSOUNDDIR + CS + ".wav", -2);
@@ -159,18 +206,23 @@ public class Director {
      * Checks targetKeyCode input against expected keyCode in the Stack.
      *
      * @param inputKeyCode - the KeyCode the typist entered<br>
-     * If the inputKeyCode is VK_ESCAPE, terminate the application.<br>
      * If the expected keyCode is 0, ignore it, try the next Director in the
-     * stack (error sound).<br>
+     * stack (this is an error sound).<br>
      * If the expected keyCode is -1, accept VK_SPACE and return false or if not
-     * VK_SPACE, ignore it.<br>
-     * If the expected keyCode is -2, accept anything and close the GUI.<br>
-     * Id the expected keyCode is -3, evaluate the typist and construct the
-     * necessary Directors.<br>
+     * VK_SPACE, ignore it (this is an intro sound).<br>
+     * If the expected keyCode is -2, accept anything and skip all -2 Directors
+     * (this is a quitting sound).<br>
+     * If the expected keyCode is -3, evaluate the typist and construct the
+     * necessary Directors (this is an end-of-typing command).<br>
+     * If the expected keyCode is -4, this is an "end of lecture" command, quit
+     * or restart or go to the next one.<br>
      * If the expected keyCode matches the input, destruct the Director on the
-     * top of the stack and return true.<br>
-     * If the expected keyCode differs from the input, push an error sound on
-     * the top of it and return false.<br>
+     * top of the stack, start the next and return true (the typist hit a
+     * matching or good key)<br>
+     * If the expected keyCode differs from the input, destroy this half-played
+     * or fully played instance, create a fresh one, push it on the stack and
+     * then push a freshly created error sound on the top of the stack, and
+     * return false (the typist hit a bad / not matching key).<br>
      *
      * @return true, if the KeyCode is consumed and typist should progress a
      * character forward, false otherwise<br>
@@ -178,90 +230,97 @@ public class Director {
     public static boolean consumeKeyDown(int inputKeyCode) {
         boolean consumed = false;
 
-//        System.err.println("DEBUG: consumeKeyDown: in: " + inputKeyCode);
+        if (inputKeyCode == KeyEvent.VK_ESCAPE) { // We should quit
+            App.SingletonGUI.close();
+            return (false);
+        }
+
         if (directorStack.empty()) {
             return (false);
         }
 
-        Director current = directorStack.pop();
+        Director first = directorStack.peek();
 
-        if (current.targetKeyCode == -3) {
-            generateEnding(App.L.goodCount, App.L.badCount, App.L.getCurrentPercent(), App.L.passPercent);
-            if (!directorStack.empty()) {
-                SounderThread NST = directorStack.peek().mySounderThread;
-                if ((NST != null) && (!NST.isAlive())) {
-                    NST.start();
-                }
+        if (first.targetKeyCode == -2) { // We should skip all -2 sounds (typist analisys).
+            first.selfDestruct();
+            while ((!directorStack.isEmpty()) && (directorStack.peek().targetKeyCode == -2)) {
+                directorStack.pop();
             }
-            return(false);
-        }
-
-//        System.err.println("DEBUG: consumeKeyDown: current: " + current.targetKeyCode + " from " + current);
-        if ((current.targetKeyCode == -2) || (inputKeyCode == KeyEvent.VK_ESCAPE)) {
-//            System.err.println("DEBUG: got -2 (victory sound) - quit.");
-            current.mySounderThread.selfDestruct();
-            selfDestruct();
+            playFirst();
             return (false);
         }
 
-        if (current.targetKeyCode == -1) {
+        if (first.targetKeyCode == -3) { // We should generate the analysis of the type
+            first.selfDestruct();
+            generateAnalysis(App.L.goodCount, App.L.badCount, App.L.getCurrentPercent(), App.L.passPercent);
+            playFirst();
+            return (false);
+        }
+
+        if (first.targetKeyCode == -4) { // We should quit
+            App.SingletonGUI.close();
+            return (false);
+        }
+
+        if (first.targetKeyCode == -1) {
             if (inputKeyCode == KeyEvent.VK_SPACE) {
 //              System.err.println("DEBUG: got space during intro - stop sound and return false.");
-                current.mySounderThread.selfDestruct();
+                first.selfDestruct();
+                playFirst();
             } else {
-                // We are waiting for a space to skip the intro - pop current back, ignore keystroke
-                directorStack.push(current);
-                return (false);
+                // We are waiting for a space to skip the intro - ignore keystroke
             }
+            return (false);
         } else {
-            // We have to find the first non-zero inputKeyCode - they are error sounds, need no keypress
+            // We have to find the first non-zero inputKeyCode - error sounds no keypress, but the first normal ones after errors do
             // If the first non-zero matches, we need to stop and remove all pending error sounds before (including) current
             // If the first non-zero does not match, we need to insert another error sound right before it, and we have to rewind it
-            if (current.targetKeyCode == 0) {
-                Director currentError = current; // This have to be saved as it may be half-played
-                int i = 0;
-                for (i = 0; i < directorStack.size(); i++) {
-                    if (directorStack.get(i).targetKeyCode != 0) {
+            if (first.targetKeyCode == 0) {
+                Director firstError = first; // This better be rememberd as it may be half-played
+                Director firstNotError = null;
+                for (int i = directorStack.size() - 1; i >= 0; i--) {
+                    Director CD = directorStack.get(i);
+                    if (CD.targetKeyCode != 0) {
+                        firstNotError = CD;
                         break;
                     }
                 }
-                if (i > directorStack.size()) {
+                if (firstNotError == null) {
                     throw new RuntimeException("FATAL: CAN NOT HAPPEN: ONLY ERRORS IN DIRECTORSTACK.");
                 }
-                Director target = directorStack.get(i);
-                if (target.targetKeyCode == inputKeyCode) {
+//                System.err.println("DEBUG: MYBUG: Expected "+firstNotError.targetKeyCode+" and got "+inputKeyCode);
+                if (firstNotError.targetKeyCode == inputKeyCode) {
                     App.L.goodCount++;
-                    for (; i > 0; i--) { // We remove all error sounds and this one, so we can start the next sound
-                        directorStack.pop().mySounderThread.selfDestruct();
+                    while (!directorStack.peek().equals(firstNotError)) {
+                        directorStack.peek().selfDestruct();
                     }
+                    firstNotError.selfDestruct();
                     consumed = true;
                 } else {
                     App.L.badCount++;
-                    // Wrong keycode, we just insert an extra error sound and push back the current one
-                    directorStack.push(new Director("systemsounds/hiba.wav", 0)); // Push an error sound in front of it
-                    directorStack.push(current);
+                    directorStack.pop(); // this should == firstError
+                    addNew("systemsounds/hiba.wav", 0);
+                    directorStack.push(firstError);
                 }
             } else {
-                if (current.targetKeyCode == inputKeyCode) {
+                if (first.targetKeyCode == inputKeyCode) {
+                    // Proper key hit - add good point, stop sound, return true.
                     App.L.goodCount++;
-                    current.mySounderThread.selfDestruct(); // Proper key hit - stop sount, return true.
+                    first.selfDestruct();
                     consumed = true;
                 } else {
+                    // Not proper key hit - add bad point, regenerate (rewind) sound, pop error sound in front, start playing.
                     App.L.badCount++;
-                    directorStack.push(current);            // Push back the popped item
-                    current.mySounderThread.selfDestruct();     // Replace the SounderThread (rewind)
-                    current.mySounderThread = new SounderThread(current.wavBuffer);
-                    directorStack.push(new Director("systemsounds/hiba.wav", 0)); // Push an error sound in front of it
+                    first.mySounderThread.selfDestruct();
+                    first.mySounderThread = new SounderThread(first.wavBuffer);
+                    first.stoppedPlaying();
+                    addNew("systemsounds/hiba.wav", 0);
                 }
             }
         }
 
-        if (!directorStack.empty()) {
-            SounderThread NST = directorStack.peek().mySounderThread;
-            if ((NST != null) && (!NST.isAlive())) {
-                NST.start();
-            }
-        }
+        playFirst();
+
 //        System.err.println("DEBUG: returning from consumeKeyDown(" + inputKeyCode + ") with " + consumed);
         return (consumed);
     }

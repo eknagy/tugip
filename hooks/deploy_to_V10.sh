@@ -1,5 +1,5 @@
 #! /bin/bash
 pushd .
 cd ~/vboxshare/tugip
-./moveLastAppJarHere.sh
+./moveLastAppJarHere.sh $@
 popd

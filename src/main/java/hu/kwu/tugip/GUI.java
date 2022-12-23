@@ -6,12 +6,14 @@ package hu.kwu.tugip;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
+import java.awt.TextArea;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
@@ -40,10 +42,14 @@ public class GUI extends JFrame {
     private final JLabel passLabel = new JLabel("??% (??%)", SwingConstants.CENTER);
     private final JPanel visualiserPanel = new JPanel();
     private final JPanel textPanel = new JPanel(new BorderLayout());
+    private final JPanel debugPanel = new JPanel(new BorderLayout());
     private final JLabel textLabel = new JLabel(PRETEXT + POSTTEXT);
     private final JPanel aboutPanel = new JPanel(new GridLayout(2, 1));
     private final Color[] colorTable = new Color[2 * 256];
 
+    public final TextArea D=new TextArea("DEBUG: Loading...");
+    public final TextArea DI=new TextArea("DEBUG: Loading...");
+    
     public void regenerateText() {
         if (textToType.length() == 0) {
             return;
@@ -61,6 +67,7 @@ public class GUI extends JFrame {
     }
 
     public void processKeyCode(int keyCode) {
+        DI.setText(DI.getText()+" "+keyCode);
         if (acceptInput) {
             if (Director.consumeKeyDown(keyCode)) {
                 textTypedPosition++;
@@ -69,12 +76,10 @@ public class GUI extends JFrame {
             App.L.regeneratePassPanel(passLabel);
             goodPointCount.setText("" + App.L.goodCount);
             badPointCount.setText("" + App.L.badCount);
-            if (textTypedPosition==textToType.length()) {
-                Director.consumeKeyDown(KeyEvent.VK_SPACE);
-            }
         }
     }
 
+    
     public void startLecture(String[] helloFileNames) {
         textToType = App.L.getNextLine();
         regenerateText();
@@ -142,7 +147,8 @@ public class GUI extends JFrame {
         }
 
         acceptInput = true;
-        Director.play();
+        
+        Director.playFirst();
     }
 
     public void setIntensity(int Value, boolean isGreen) {
@@ -219,7 +225,7 @@ public class GUI extends JFrame {
         GBC.gridx = 1;
         GBC.fill = GridBagConstraints.BOTH;
         GBC.weightx = 1;
-        GBC.weighty = 0.5;
+        GBC.weighty = 10;
         this.add(northPanel, GBC);
         GBC.weighty = 20;
         this.add(textPanel, GBC);
@@ -231,7 +237,7 @@ public class GUI extends JFrame {
         JPanel aboutLowerPanel = new JPanel(new GridLayout(1, 2));
         aboutPanel.add(aboutUpperPanel);
         aboutPanel.add(aboutLowerPanel);
-        aboutUpperPanel.add(new JLabel("Tugip v. 0.2.0", SwingConstants.CENTER));
+        aboutUpperPanel.add(new JLabel("Tugip v. 0.3.0", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Gépírás tankönyv: Rácz Hajnalka", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Projektmenedzser: Dr. Nógrádi Judit", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Szoftverfejlesztő: Dr. Nagy Elemér Károly", SwingConstants.CENTER));
@@ -239,11 +245,23 @@ public class GUI extends JFrame {
         aboutLowerPanel.add(new JLabel("A projektet az FSF.hu Alapítvány a Szabad Szoftver Pályázat 2022 keretén belül támogatta.", SwingConstants.CENTER));
         textPanel.setBackground(Color.WHITE);
         textPanel.add(textLabel, BorderLayout.CENTER);
+        
         textLabel.setFont(FONT144);
         textLabel.setVerticalAlignment(SwingConstants.CENTER);
         textLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        textLabel.setPreferredSize(new Dimension(1000,600));
+
+        textPanel.add(debugPanel, BorderLayout.NORTH);
+        debugPanel.setBackground(Color.yellow);
+        D.setEditable(false);
+        D.setPreferredSize(new Dimension(1000,300));
+        DI.setEditable(false);
+        DI.setPreferredSize(new Dimension(1000,50));
+        debugPanel.add(D, BorderLayout.CENTER);
+        debugPanel.add(DI, BorderLayout.SOUTH);
         pack();
         setVisible(true);
+        textLabel.requestFocusInWindow();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         registerKeyHandler();
