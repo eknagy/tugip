@@ -6,7 +6,11 @@ package hu.kwu.tugip;
 
 import java.awt.Color;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 import javax.swing.JLabel;
 
@@ -49,6 +53,27 @@ public class Lecturer {
         } catch (NumberFormatException NFE) {
             System.err.println("passPercent defaulting to 80 because of NFE: " + NFE.toString());
         }
+    }
+
+    public static String[] listAvailableLecturesSorted() throws IOException {
+        ArrayList<String> tmp = new ArrayList<>();
+        try {
+            BufferedReader BR = new BufferedReader(new InputStreamReader(
+                    Thread.currentThread().getContextClassLoader().getResourceAsStream("lectures/lectures.list")));
+
+            String CLine = null;
+            while (null != (CLine = BR.readLine())) {
+                tmp.add(CLine);
+            }
+
+        } catch (IOException E) {
+            System.err.println("Lecturer.listAvailableLecturesSorted() Exception: " + E.toString());
+            throw new IOException(E);
+        }
+        String[] retVal = tmp.toArray(new String[0]);
+
+        Arrays.sort(retVal);
+        return (retVal);
     }
 
     public String getWavDir() {

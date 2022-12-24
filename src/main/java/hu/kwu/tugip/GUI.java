@@ -257,8 +257,8 @@ public class GUI extends JFrame {
         D.setPreferredSize(new Dimension(1000,300));
         DI.setEditable(false);
         DI.setPreferredSize(new Dimension(1000,50));
-        debugPanel.add(D, BorderLayout.CENTER);
-        debugPanel.add(DI, BorderLayout.SOUTH);
+//        debugPanel.add(D, BorderLayout.CENTER);
+//        debugPanel.add(DI, BorderLayout.SOUTH);
         pack();
         setVisible(true);
         textLabel.requestFocusInWindow();

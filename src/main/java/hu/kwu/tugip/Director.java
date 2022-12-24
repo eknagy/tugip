@@ -175,25 +175,25 @@ public class Director {
         // "0 jo es 0 rossz leutesed volt az eredmenyed 0 szazalek ez a lecke 0 szazalektol sikeres"
         Director.addNew(null, -4);
         Director.addNew(App.SYSTEMSOUNDDIR + (currentPercent >= targetPercent ? "yuhuu" : "ooo") + ".wav", -2);
-        for (String CS : generateTextFileNames("szazalektol sikeres")) {
+        for (String CS : generateTextFileNames("szazalektol_sikeres")) {
             Director.addNew(App.SYSTEMSOUNDDIR + CS + ".wav", -2);
         }
         for (String CS : generateNumberFileNames(targetPercent)) {
             Director.addNew(App.NUMBERSSOUNDDIR + CS + ".wav", -2);
         }
-        for (String CS : generateTextFileNames("szazalek ez a lecke")) {
+        for (String CS : generateTextFileNames("szazalek_ez_a_lecke")) {
             Director.addNew(App.SYSTEMSOUNDDIR + CS + ".wav", -2);
         }
         for (String CS : generateNumberFileNames(currentPercent)) {
             Director.addNew(App.NUMBERSSOUNDDIR + CS + ".wav", -2);
         }
-        for (String CS : generateTextFileNames("rossz leutesed volt az eredmenyed")) {
+        for (String CS : generateTextFileNames("rossz_leutesed_volt_az_eredmenyed")) {
             Director.addNew(App.SYSTEMSOUNDDIR + CS + ".wav", -2);
         }
         for (String CS : generateNumberFileNames(badPoints)) {
             Director.addNew(App.NUMBERSSOUNDDIR + CS + ".wav", -2);
         }
-        for (String CS : generateTextFileNames("jo es")) {
+        for (String CS : generateTextFileNames("jo_es")) {
             Director.addNew(App.SYSTEMSOUNDDIR + CS + ".wav", -2);
         }
         for (String CS : generateNumberFileNames(goodPoints)) {
