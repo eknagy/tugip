@@ -7,21 +7,35 @@ package hu.kwu.tugip;
 import java.awt.Color;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Properties;
 import javax.swing.JLabel;
 
 public class Lecturer {
 
-    private final Properties P = new Properties();
+    private final Properties lectureProperties = new Properties();
+    public final static Properties progressProperties;
     private final String lectureName;
     private final String wavDir;
     public int passPercent = 80;
     public int badCount = 0;
     public int goodCount = 0;
+
+    static {
+        progressProperties = new Properties();
+        try {
+            BufferedInputStream BIS = new BufferedInputStream(new FileInputStream("lectures/progress.properties"));
+            progressProperties.load(BIS);
+        } catch (IOException E) {
+            System.err.println("DEBUG: IOE: " + E.toString()); // Ignore it, we just start from the first lecture (kiosk mode)
+        }
+    }
 
     public int getCurrentPercent() {
         return (((badCount + goodCount) == 0) ? -1 : (100 * goodCount) / (badCount + goodCount));
@@ -42,37 +56,36 @@ public class Lecturer {
         this.lectureName = lectureName;
         try {
             BufferedInputStream FIS = new BufferedInputStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("lectures/" + this.lectureName + "/config.properties"));
-            P.load(FIS);
+            lectureProperties.load(FIS);
         } catch (IOException E) {
             System.err.println("Lecturer(" + this.lectureName + ") Exception: " + E.toString());
             throw new IOException(E);
         }
-        wavDir = "lecturesounds/" + P.getProperty("WAVDIR", "undefined") + "/";
+        wavDir = "lecturesounds/" + lectureProperties.getProperty("WAVDIR", "undefined") + "/";
         try {
-            passPercent = Integer.parseInt(P.getProperty("PASS_PERCENT", "80").trim());
+            passPercent = Integer.parseInt(lectureProperties.getProperty("PASS_PERCENT", "80").trim());
         } catch (NumberFormatException NFE) {
             System.err.println("passPercent defaulting to 80 because of NFE: " + NFE.toString());
         }
     }
 
-    public static String[] listAvailableLecturesSorted() throws IOException {
-        ArrayList<String> tmp = new ArrayList<>();
+    public static ArrayList<String> listAvailableLecturesSorted() throws IOException {
+        ArrayList<String> retVal = new ArrayList<>();
         try {
             BufferedReader BR = new BufferedReader(new InputStreamReader(
                     Thread.currentThread().getContextClassLoader().getResourceAsStream("lectures/lectures.list")));
 
             String CLine = null;
             while (null != (CLine = BR.readLine())) {
-                tmp.add(CLine);
+                retVal.add(CLine);
             }
 
         } catch (IOException E) {
             System.err.println("Lecturer.listAvailableLecturesSorted() Exception: " + E.toString());
             throw new IOException(E);
         }
-        String[] retVal = tmp.toArray(new String[0]);
 
-        Arrays.sort(retVal);
+        retVal.sort(null);
         return (retVal);
     }
 
@@ -81,7 +94,7 @@ public class Lecturer {
     }
 
     public String getNextLine() {
-        return P.getProperty("TEXT_1", "");
+        return lectureProperties.getProperty("TEXT_1", "");
     }
 
     public String[] getHelloFilesNames() throws IOException {
@@ -91,7 +104,7 @@ public class Lecturer {
               throw new IOException("Not {found, readable, a file}: "+HelloPath.toString()+" ("+HelloPathString+")");
         }
          */
-        String helloFilesLine = P.getProperty("BEFORE_LECTURE", "hello");
+        String helloFilesLine = lectureProperties.getProperty("BEFORE_LECTURE", "hello");
         String[] helloFilesStrings = helloFilesLine.split("\\s");
         String[] helloFilesNames = new String[helloFilesStrings.length];
 

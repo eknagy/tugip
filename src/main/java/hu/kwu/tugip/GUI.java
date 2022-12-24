@@ -47,9 +47,9 @@ public class GUI extends JFrame {
     private final JPanel aboutPanel = new JPanel(new GridLayout(2, 1));
     private final Color[] colorTable = new Color[2 * 256];
 
-    public final TextArea D=new TextArea("DEBUG: Loading...");
-    public final TextArea DI=new TextArea("DEBUG: Loading...");
-    
+    public final TextArea D = new TextArea("DEBUG: Loading...");
+    public final TextArea DI = new TextArea("DEBUG: Loading...");
+
     public void regenerateText() {
         if (textToType.length() == 0) {
             return;
@@ -67,7 +67,7 @@ public class GUI extends JFrame {
     }
 
     public void processKeyCode(int keyCode) {
-        DI.setText(DI.getText()+" "+keyCode);
+        DI.setText(DI.getText() + " " + keyCode);
         if (acceptInput) {
             if (Director.consumeKeyDown(keyCode)) {
                 textTypedPosition++;
@@ -79,7 +79,6 @@ public class GUI extends JFrame {
         }
     }
 
-    
     public void startLecture(String[] helloFileNames) {
         textToType = App.L.getNextLine();
         regenerateText();
@@ -103,7 +102,7 @@ public class GUI extends JFrame {
             Director.play();
             return;
         }
-*/
+         */
         for (int i = textToType.length() - 1; i >= 0; i--) {
             String nextChar = textToType.substring(i, i + 1);
             switch (nextChar) {
@@ -142,12 +141,14 @@ public class GUI extends JFrame {
             Director.addNew(App.L.getWavDir() + nextChar + ".wav", targetKeyCode);
         }
 
-        for (String CS : helloFileNames) {
+        for (int h = helloFileNames.length - 1; h >= 0; h--) {
+            String CS = helloFileNames[h];
+            System.err.println("Adding CS: " + CS);
             Director.addNew(CS, -1);
         }
 
         acceptInput = true;
-        
+
         Director.playFirst();
     }
 
@@ -245,18 +246,18 @@ public class GUI extends JFrame {
         aboutLowerPanel.add(new JLabel("A projektet az FSF.hu Alapítvány a Szabad Szoftver Pályázat 2022 keretén belül támogatta.", SwingConstants.CENTER));
         textPanel.setBackground(Color.WHITE);
         textPanel.add(textLabel, BorderLayout.CENTER);
-        
+
         textLabel.setFont(FONT144);
         textLabel.setVerticalAlignment(SwingConstants.CENTER);
         textLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        textLabel.setPreferredSize(new Dimension(1000,600));
+        textLabel.setPreferredSize(new Dimension(1000, 600));
 
         textPanel.add(debugPanel, BorderLayout.NORTH);
         debugPanel.setBackground(Color.yellow);
         D.setEditable(false);
-        D.setPreferredSize(new Dimension(1000,300));
+        D.setPreferredSize(new Dimension(1000, 300));
         DI.setEditable(false);
-        DI.setPreferredSize(new Dimension(1000,50));
+        DI.setPreferredSize(new Dimension(1000, 50));
 //        debugPanel.add(D, BorderLayout.CENTER);
 //        debugPanel.add(DI, BorderLayout.SOUTH);
         pack();
