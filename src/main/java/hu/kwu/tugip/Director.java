@@ -26,6 +26,7 @@ public class Director {
     private SounderThread mySounderThread = null;
     private String wavFileName = null;
     private boolean playing = false;
+    private static boolean ignoreClose = false;
 
     @Override
     public String toString() {
@@ -37,8 +38,12 @@ public class Director {
     }
 
     public static void refreshDebug() {
-        App.SingletonGUI.D.setText(Director.toStringAll());
-        App.SingletonGUI.D.repaint();
+        if (App.SingletonGUI.D.isVisible()) {
+            App.SingletonGUI.D.setText(Director.toStringAll());
+            App.SingletonGUI.D.repaint();
+        } else {
+            System.err.println(Director.toStringAll());
+        }
     }
 
     public static String toStringAll() {
@@ -83,19 +88,31 @@ public class Director {
         selectedLine.addLineListener(new LineListener() {
             @Override
             public void update(LineEvent le) {
-//                System.err.println("DEBUG: le: "+le);
-                // If we close a line (sound ended) and the first Director is an error sound or a skippables sound (has a 0 or -2 KeyCode) then we remove it and start the next one.
-                if (le.getType() == LineEvent.Type.CLOSE) {
-//                    System.err.println("DEBUG: CL: "+le);
-                    if (!directorStack.empty()) {
-                        Director first = directorStack.peek();
-                        first.stoppedPlaying();
+                // If we close a line (sound ended) we can start playing the next sound, if:
+                // it is an error sound (0 KeyCode)
+                // it is a skippable sound (-2 KeyCode)
+                // it and the next are both intro sounds (-1 KeyCode)
+                if ((le.getType() == LineEvent.Type.CLOSE) && (!ignoreClose)) {
+                    synchronized (directorStack) {
 
-                        if ((first.targetKeyCode == 0) || (first.targetKeyCode == -2)) {
-                            first.selfDestruct();
+                        if (!directorStack.empty()) {
+                            Director first = directorStack.peek();
+                            first.stoppedPlaying();
+                            System.err.println("DEBUG: "+System.currentTimeMillis()%100000+" Line Close while first is " + first);
+                            boolean canStartNext = (first.targetKeyCode == 0) || (first.targetKeyCode == -2);
 
-                            if (!directorStack.empty()) {
-                                directorStack.peek().play();
+                            if (first.targetKeyCode == -1) {
+                                Director second = directorStack.get(directorStack.size() - 2);
+                                canStartNext = ((null != second) && (second.targetKeyCode == -1));
+//                                System.err.println("DEBUG: Line Close while first is " + first + " and second is " + second + " and " + canStartNext);
+                            }
+
+                            if (canStartNext) {
+                                first.selfDestruct();
+
+                                if (!directorStack.empty()) {
+                                    directorStack.peek().play();
+                                }
                             }
                         }
                     }
@@ -129,15 +146,25 @@ public class Director {
     }
 
     public static void addNew(String wavFileName, int targetKeyCode) {
-        directorStack.push(new Director(wavFileName, targetKeyCode));
-        refreshDebug();
+        synchronized (directorStack) {
+            directorStack.push(new Director(wavFileName, targetKeyCode));
+            refreshDebug();
+        }
     }
 
     public void selfDestruct() {
-        directorStack.remove(this);
-        if (mySounderThread != null) {
-            mySounderThread.selfDestruct();
+        System.err.println("DEBUG: "+System.currentTimeMillis()%100000+" selfDestruct:" + this);
+        ignoreClose = true;
+        synchronized (directorStack) {
+            if (!directorStack.isEmpty()) {
+                directorStack.remove(this);
+            }
+            //       System.err.println("DEBUG: selfDestruct.postpeek:" +directorStack.peek());
+            if (mySounderThread != null) {
+                mySounderThread.selfDestruct();
+            }
         }
+        ignoreClose = false;
         refreshDebug();
     }
 
@@ -156,6 +183,7 @@ public class Director {
         } else if ((input > 20) && (input < 100)) {
             TFNP = new String[]{"" + (input % 10), "" + (input / 10) * 10};
         } else {
+            App.alertRed("Can not generateNumber(" + input + ")");
             throw new RuntimeException("Can not generateNumber(" + input + ")");
         }
         return (TFNP);
@@ -264,9 +292,26 @@ public class Director {
 
         if (first.targetKeyCode == -1) {
             if (inputKeyCode == KeyEvent.VK_SPACE) {
-//              System.err.println("DEBUG: got space during intro - stop sound and return false.");
-                first.selfDestruct();
-                playFirst();
+//                System.err.println("DEBUG: got space during intro - eat all intro sounds (KeyCode==-1) and stop sound and return false.");
+//                System.err.println("DEBUG: first: "+first);
+
+                ignoreClose = true;
+                synchronized (directorStack) {
+                    first = directorStack.pop(); // We will destroy it later, but first we destroy all following intro sounds to prevent autoplay
+
+//                    System.err.println("DEBUG: prep: "+directorStack.peek());
+                    while ((!directorStack.isEmpty()) && (directorStack.peek().targetKeyCode == -1)) {
+                        System.err.println("DEBUG: -1 SD peek: " + directorStack.peek());
+
+                        directorStack.peek().selfDestruct();
+                    }
+                    System.err.println("DEBUG: -1 SD next: " + directorStack.peek());
+                    first.selfDestruct();
+//                    System.err.println("DEBUG: play: "+directorStack.peek());
+                    playFirst();
+                }
+                ignoreClose = false;
+
             } else {
                 // We are waiting for a space to skip the intro - ignore keystroke
             }

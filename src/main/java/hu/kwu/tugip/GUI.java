@@ -142,10 +142,10 @@ public class GUI extends JFrame {
         }
 
         for (int h = helloFileNames.length - 1; h >= 0; h--) {
-            String CS = helloFileNames[h];
-            System.err.println("Adding CS: " + CS);
-            Director.addNew(CS, -1);
+            Director.addNew(helloFileNames[h], -1);
         }
+
+        Director.addNew(App.SYSTEMSOUNDDIR + "hello.wav", -1);
 
         acceptInput = true;
 

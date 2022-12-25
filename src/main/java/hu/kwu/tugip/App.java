@@ -19,7 +19,7 @@ public class App {
     public static Lecturer L;
 
     public static void alertRed(String message) {
-        new JOptionPane(message, JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(SingletonGUI, message, message, JOptionPane.ERROR_MESSAGE);
         System.exit(-1);
     }
     
@@ -35,7 +35,6 @@ public class App {
         
         L=new Lecturer(lectureNames.contains(myLecture)?myLecture:lectureNames.get(0));
 
-        S.syncPlayOnSelectedLine("systemsounds/hello.wav");
         String [] HelloFileNames = L.getHelloFilesNames();
 //        System.out.println("Debug HelloFileNames: "+Arrays.toString(HelloFileNames));
         if (null!= HelloFileNames) {
