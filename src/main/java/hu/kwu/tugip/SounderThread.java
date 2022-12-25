@@ -27,7 +27,7 @@ public class SounderThread extends Thread {
     public void endMyself() {
         shouldEnd = true;
         selectedLine.close();
-        App.SingletonGUI.setIntensity(0, true);
+        App.G.setIntensity(0, true);
     }
 
     public void selfDestruct() {

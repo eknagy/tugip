@@ -4,6 +4,7 @@
  */
 package hu.kwu.tugip;
 
+import static hu.kwu.tugip.App.G;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -91,13 +92,13 @@ public class Sounder {
 
     public void playOnSelectedLine(String FileName, int StopperKey, boolean enforceSync) {
         if (selectedLine == null) {
-            App.SingletonGUI.setIntensity(255, false);
+            G.setIntensity(255, false);
         }
         byte[] Buffer = new byte[0];
         try {
             Buffer = loadWavToBuffer(FileName);
         } catch (UnsupportedAudioFileException | IOException E) {
-            App.SingletonGUI.setIntensity(255, false);
+            G.setIntensity(255, false);
         }
         SounderThread ST = new SounderThread(Buffer);
         ST.start();

@@ -15,11 +15,11 @@ public class App {
     public final static String SYSTEMSOUNDDIR="systemsounds/";
     public final static String NUMBERSSOUNDDIR="numbers/";
     public final static Sounder S = new Sounder(SYSTEMSOUNDDIR+"hello.wav");
-    public final static GUI SingletonGUI = new GUI(S);
+    public final static GUI G = new GUI(S);
     public static Lecturer L;
 
-    public static void alertRed(String message) {
-        JOptionPane.showMessageDialog(SingletonGUI, message, message, JOptionPane.ERROR_MESSAGE);
+    public static void redAlert(String message) {
+        JOptionPane.showMessageDialog(G, message, message, JOptionPane.ERROR_MESSAGE);
         System.exit(-1);
     }
     
@@ -30,17 +30,12 @@ public class App {
         String myLecture=Lecturer.progressProperties.getProperty("nextLecture");
         
         if ((null==lectureNames) || (lectureNames.isEmpty())) {
-            alertRed("No lectures: "+lectureNames);
+            redAlert("No lectures: "+lectureNames);
         }
         
         L=new Lecturer(lectureNames.contains(myLecture)?myLecture:lectureNames.get(0));
 
-        String [] HelloFileNames = L.getHelloFilesNames();
-//        System.out.println("Debug HelloFileNames: "+Arrays.toString(HelloFileNames));
-        if (null!= HelloFileNames) {
-            SingletonGUI.startLecture(HelloFileNames);
-        } else {
-            throw new RuntimeException("UNIMPLEMENTED! BEFORE_LECTURE is parsed to null or not single-item String array.");
-        }
+        G.startLecture();
+
     }
 }

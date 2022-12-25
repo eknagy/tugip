@@ -4,6 +4,7 @@
  */
 package hu.kwu.tugip;
 
+import static hu.kwu.tugip.App.L;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -16,12 +17,15 @@ import java.awt.KeyboardFocusManager;
 import java.awt.TextArea;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class GUI extends JFrame {
+
+    public static boolean debugMode = false;
 
     private final static String PRETEXT = "<html><div style='text-align: center;'><div style='background-color: #C0FFC0'>";
     private final static String POSTTEXT = "</div><html>";
@@ -73,19 +77,27 @@ public class GUI extends JFrame {
                 textTypedPosition++;
                 regenerateText();
             }
-            App.L.regeneratePassPanel(passLabel);
-            goodPointCount.setText("" + App.L.goodCount);
-            badPointCount.setText("" + App.L.badCount);
+            goodPointCount.setText("" + L.goodCount);
+            badPointCount.setText("" + L.badCount);
+            L.regeneratePassPanel(passLabel);
         }
     }
 
-    public void startLecture(String[] helloFileNames) {
-        textToType = App.L.getNextLine();
+    public void startLecture() {
+        String[] helloFileNames = new String[0];
+        try {
+            helloFileNames = L.getHelloFilesNames();
+        } catch (IOException E) {
+            App.redAlert(E.toString());
+        }
+
+        L.resetCounts();
+        textTypedPosition=0;
+        
+        textToType = L.getNextLine();
         regenerateText();
 
-        App.L.regeneratePassPanel(passLabel);
-
-        int targetKeyCode = -1;
+        L.regeneratePassPanel(passLabel);
 
         Director.addNew(null, -3); // Director uses a stack (FILO) - "generate results" command first
 /*        if (true) {
@@ -103,6 +115,9 @@ public class GUI extends JFrame {
             return;
         }
          */
+
+        int targetKeyCode = -1;
+
         for (int i = textToType.length() - 1; i >= 0; i--) {
             String nextChar = textToType.substring(i, i + 1);
             switch (nextChar) {
@@ -138,7 +153,7 @@ public class GUI extends JFrame {
                     System.err.println("Error: unhandled next char in GUI: " + nextChar);
             }
 //            System.err.println("DEBUG: " + nextChar + " " + targetKeyCode);
-            Director.addNew(App.L.getWavDir() + nextChar + ".wav", targetKeyCode);
+            Director.addNew(L.getWavDir() + nextChar + ".wav", targetKeyCode);
         }
 
         for (int h = helloFileNames.length - 1; h >= 0; h--) {
@@ -252,14 +267,17 @@ public class GUI extends JFrame {
         textLabel.setHorizontalAlignment(SwingConstants.CENTER);
         textLabel.setPreferredSize(new Dimension(1000, 600));
 
-        textPanel.add(debugPanel, BorderLayout.NORTH);
+        if (debugMode) {
+            textPanel.add(debugPanel, BorderLayout.NORTH);
+
+        }
         debugPanel.setBackground(Color.yellow);
         D.setEditable(false);
         D.setPreferredSize(new Dimension(1000, 300));
         DI.setEditable(false);
         DI.setPreferredSize(new Dimension(1000, 50));
-//        debugPanel.add(D, BorderLayout.CENTER);
-//        debugPanel.add(DI, BorderLayout.SOUTH);
+        debugPanel.add(D, BorderLayout.CENTER);
+        debugPanel.add(DI, BorderLayout.SOUTH);
         pack();
         setVisible(true);
         textLabel.requestFocusInWindow();

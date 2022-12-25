@@ -8,12 +8,9 @@ import java.awt.Color;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Properties;
 import javax.swing.JLabel;
 
@@ -26,6 +23,7 @@ public class Lecturer {
     public int passPercent = 80;
     public int badCount = 0;
     public int goodCount = 0;
+    private static ArrayList<String> availableLectures = null;
 
     static {
         progressProperties = new Properties();
@@ -35,6 +33,11 @@ public class Lecturer {
         } catch (IOException E) {
             System.err.println("DEBUG: IOE: " + E.toString()); // Ignore it, we just start from the first lecture (kiosk mode)
         }
+    }
+
+    public void resetCounts() {
+        badCount = 0;
+        goodCount = 0;
     }
 
     public int getCurrentPercent() {
@@ -70,14 +73,17 @@ public class Lecturer {
     }
 
     public static ArrayList<String> listAvailableLecturesSorted() throws IOException {
-        ArrayList<String> retVal = new ArrayList<>();
+        if (availableLectures != null) {
+            return availableLectures;
+        }
         try {
             BufferedReader BR = new BufferedReader(new InputStreamReader(
                     Thread.currentThread().getContextClassLoader().getResourceAsStream("lectures/lectures.list")));
 
+            availableLectures = new ArrayList<>();
             String CLine = null;
             while (null != (CLine = BR.readLine())) {
-                retVal.add(CLine);
+                availableLectures.add(CLine);
             }
 
         } catch (IOException E) {
@@ -85,8 +91,13 @@ public class Lecturer {
             throw new IOException(E);
         }
 
-        retVal.sort(null);
-        return (retVal);
+        availableLectures.sort(null);
+        return (availableLectures);
+    }
+
+    public String getNextLectureName() {
+        int nextIndex = availableLectures.indexOf(lectureName)+1;
+        return (nextIndex>=availableLectures.size()?null:availableLectures.get(nextIndex));
     }
 
     public String getWavDir() {
