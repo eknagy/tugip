@@ -6,6 +6,7 @@ package hu.kwu.tugip;
 
 import static hu.kwu.tugip.App.G;
 import static hu.kwu.tugip.App.L;
+import static hu.kwu.tugip.App.S;
 import static hu.kwu.tugip.Sounder.loadWavToBuffer;
 import static hu.kwu.tugip.Sounder.selectedLine;
 import java.awt.event.KeyEvent;
@@ -44,7 +45,7 @@ public class Director {
             G.D.setText(Director.toStringAll());
             G.D.repaint();
         } else {
-            System.err.println(Director.toStringAll());
+//            System.err.println(Director.toStringAll());
         }
     }
 
@@ -136,7 +137,7 @@ public class Director {
             } else {
                 System.err.println("DEBUG Director: load   " + this.toString());
                 try {
-                    wavBuffer = loadWavToBuffer(wavFileName);
+                    wavBuffer = loadWavToBuffer(S.getAutoPathFor(wavFileName));
                     wavBufferLookUpTable.put(wavFileName, wavBuffer);
                 } catch (UnsupportedAudioFileException | IOException E) {
                     G.setIntensity(255, false);
@@ -215,32 +216,32 @@ public class Director {
     public static void generateAnalysis(int goodPoints, int badPoints, int currentPercent, int targetPercent) {
         // "0 jo es 0 rossz leutesed volt az eredmenyed 0 szazalek ez a lecke 0 szazalektol sikeres"
         Director.addNew(null, -4);
-        Director.addNew(App.SYSTEMSOUNDDIR + (currentPercent >= targetPercent ? "yuhuu" : "ooo") + ".wav", -2);
+        Director.addNew((currentPercent >= targetPercent ? "yuhuu" : "ooo") + ".wav", -2);
         for (String CS : generateTextFileNames("szazalektol_sikeres")) {
-            Director.addNew(App.SYSTEMSOUNDDIR + CS + ".wav", -2);
+            Director.addNew(CS + ".wav", -2);
         }
         for (String CS : generateNumberFileNames(targetPercent)) {
-            Director.addNew(App.NUMBERSSOUNDDIR + CS + ".wav", -2);
+            Director.addNew(CS + ".wav", -2);
         }
         for (String CS : generateTextFileNames("szazalek_ez_a_lecke")) {
-            Director.addNew(App.SYSTEMSOUNDDIR + CS + ".wav", -2);
+            Director.addNew(CS + ".wav", -2);
         }
         for (String CS : generateNumberFileNames(currentPercent)) {
-            Director.addNew(App.NUMBERSSOUNDDIR + CS + ".wav", -2);
+            Director.addNew(CS + ".wav", -2);
         }
         for (String CS : generateTextFileNames("rossz_leutesed_volt_az_eredmenyed")) {
-            Director.addNew(App.SYSTEMSOUNDDIR + CS + ".wav", -2);
+            Director.addNew(CS + ".wav", -2);
         }
         for (String CS : generateNumberFileNames(badPoints)) {
-            Director.addNew(App.NUMBERSSOUNDDIR + CS + ".wav", -2);
+            Director.addNew(CS + ".wav", -2);
         }
         for (String CS : generateTextFileNames("jo_es")) {
-            Director.addNew(App.SYSTEMSOUNDDIR + CS + ".wav", -2);
+            Director.addNew(CS + ".wav", -2);
         }
         for (String CS : generateNumberFileNames(goodPoints)) {
-            Director.addNew(App.NUMBERSSOUNDDIR + CS + ".wav", -2);
+            Director.addNew(CS + ".wav", -2);
         }
-        Director.addNew(App.SYSTEMSOUNDDIR + (currentPercent >= targetPercent ? "yuhuu" : "ooo") + ".wav", -2);
+        Director.addNew((currentPercent >= targetPercent ? "yuhuu" : "ooo") + ".wav", -2);
     }
 
     /**
@@ -374,7 +375,7 @@ public class Director {
                 } else {
                     L.badCount++;
                     directorStack.pop(); // this should == firstError
-                    addNew("systemsounds/hiba.wav", 0);
+                    addNew("hiba.wav", 0);
                     directorStack.push(firstError);
                 }
             } else {
@@ -389,7 +390,7 @@ public class Director {
                     first.mySounderThread.selfDestruct();
                     first.mySounderThread = new SounderThread(first.wavBuffer);
                     first.stoppedPlaying();
-                    addNew("systemsounds/hiba.wav", 0);
+                    addNew("hiba.wav", 0);
                 }
             }
         }

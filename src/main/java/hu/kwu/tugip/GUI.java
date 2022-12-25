@@ -5,6 +5,7 @@
 package hu.kwu.tugip;
 
 import static hu.kwu.tugip.App.L;
+import static hu.kwu.tugip.App.S;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -153,14 +154,14 @@ public class GUI extends JFrame {
                     System.err.println("Error: unhandled next char in GUI: " + nextChar);
             }
 //            System.err.println("DEBUG: " + nextChar + " " + targetKeyCode);
-            Director.addNew(L.getWavDir() + nextChar + ".wav", targetKeyCode);
+            Director.addNew(nextChar + ".wav", targetKeyCode);
         }
 
         for (int h = helloFileNames.length - 1; h >= 0; h--) {
             Director.addNew(helloFileNames[h], -1);
         }
 
-        Director.addNew(App.SYSTEMSOUNDDIR + "hello.wav", -1);
+        Director.addNew("hello.wav", -1);
 
         acceptInput = true;
 

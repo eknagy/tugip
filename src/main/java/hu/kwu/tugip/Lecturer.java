@@ -19,7 +19,7 @@ public class Lecturer {
     private final Properties lectureProperties = new Properties();
     public final static Properties progressProperties;
     private final String lectureName;
-    private final String wavDir;
+    private final String [] wavDirs;
     public int passPercent = 80;
     public int badCount = 0;
     public int goodCount = 0;
@@ -64,7 +64,17 @@ public class Lecturer {
             System.err.println("Lecturer(" + this.lectureName + ") Exception: " + E.toString());
             throw new IOException(E);
         }
-        wavDir = "lecturesounds/" + lectureProperties.getProperty("WAVDIR", "undefined") + "/";
+        String [] tmp = lectureProperties.getProperty("WAVDIR", "").split(" ");
+        wavDirs = new String[tmp.length+2];
+        wavDirs[0]="lectures/"+lectureName+"/";
+        wavDirs[1]="lecturesounds/";
+        System.arraycopy(tmp, 0, wavDirs, 2, tmp.length);
+        for (int i=2; i<wavDirs.length; i++) {
+            wavDirs[i]="lecturesounds/"+wavDirs[i]+"/";
+        }
+        
+        System.err.println("DEBUG: Lectures: "+java.util.Arrays.toString(wavDirs));
+        
         try {
             passPercent = Integer.parseInt(lectureProperties.getProperty("PASS_PERCENT", "80").trim());
         } catch (NumberFormatException NFE) {
@@ -100,8 +110,8 @@ public class Lecturer {
         return (nextIndex>=availableLectures.size()?null:availableLectures.get(nextIndex));
     }
 
-    public String getWavDir() {
-        return wavDir;
+    public String [] getWavDirs() {
+        return wavDirs;
     }
 
     public String getNextLine() {
@@ -109,18 +119,12 @@ public class Lecturer {
     }
 
     public String[] getHelloFilesNames() throws IOException {
-        /*        String HelloPathString = "lectures/" + this.LectureName + "/" + P.getProperty("BEFORE_LECTURE") + ".wav";
-        Path HelloPath = Paths.get(HelloPathString);
-        if ((!Files.exists(HelloPath)) || (!Files.isReadable(HelloPath)) || (!Files.isRegularFile(HelloPath))) {
-              throw new IOException("Not {found, readable, a file}: "+HelloPath.toString()+" ("+HelloPathString+")");
-        }
-         */
         String helloFilesLine = lectureProperties.getProperty("BEFORE_LECTURE", "hello");
         String[] helloFilesStrings = helloFilesLine.split("\\s");
         String[] helloFilesNames = new String[helloFilesStrings.length];
 
         for (int i = 0; i < helloFilesStrings.length; i++) {
-            helloFilesNames[i] = "lectures/" + this.lectureName + "/" + helloFilesStrings[i] + ".wav";
+            helloFilesNames[i] = helloFilesStrings[i] + ".wav";
         }
 
         return (helloFilesNames);

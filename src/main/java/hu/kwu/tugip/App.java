@@ -12,28 +12,28 @@ import javax.swing.JOptionPane;
 
 public class App {
 
-    public final static String SYSTEMSOUNDDIR="systemsounds/";
-    public final static String NUMBERSSOUNDDIR="numbers/";
-    public final static Sounder S = new Sounder(SYSTEMSOUNDDIR+"hello.wav");
-    public final static GUI G = new GUI(S);
+    public static final String[] SYSTEM_SOUND_DIRS = new String[]{"systemletters/", "systemnumbers/", "systemsounds/"};
+
     public static Lecturer L;
+    public final static Sounder S = new Sounder(SYSTEM_SOUND_DIRS[2] + "hello.wav");
+    public final static GUI G = new GUI(S);
 
     public static void redAlert(String message) {
         JOptionPane.showMessageDialog(G, message, message, JOptionPane.ERROR_MESSAGE);
         System.exit(-1);
     }
-    
+
     public static void main(String[] args) throws RuntimeException, ClassNotFoundException, UnsupportedAudioFileException, IOException, LineUnavailableException {
         System.out.println("Starting up, Sounder and GUI already static initialized.");
-        
+
         ArrayList<String> lectureNames = Lecturer.listAvailableLecturesSorted();
-        String myLecture=Lecturer.progressProperties.getProperty("nextLecture");
-        
-        if ((null==lectureNames) || (lectureNames.isEmpty())) {
-            redAlert("No lectures: "+lectureNames);
+        String myLecture = Lecturer.progressProperties.getProperty("nextLecture");
+
+        if ((null == lectureNames) || (lectureNames.isEmpty())) {
+            redAlert("No lectures: " + lectureNames);
         }
-        
-        L=new Lecturer(lectureNames.contains(myLecture)?myLecture:lectureNames.get(0));
+
+        L = new Lecturer(lectureNames.contains(myLecture) ? myLecture : lectureNames.get(0));
 
         G.startLecture();
 
