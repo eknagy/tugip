@@ -48,7 +48,7 @@ public class Director {
             G.D.setText(Director.toStringAll());
             G.D.repaint();
         } else {
-//            System.err.println(Director.toStringAll());
+            System.err.println(Director.toStringAll());
         }
     }
 
@@ -73,6 +73,7 @@ public class Director {
     }
 
     public void play() {
+        System.err.println("DEBUG: Playing: "+directorStack.peek());
         if (targetKeyCode == -4) {
             consumeKeyDown(KeyEvent.VK_SPACE);
         } else if (targetKeyCode == -3) {
@@ -140,9 +141,9 @@ public class Director {
             } else {
                 System.err.println("DEBUG Director: load   " + this.toString());
                 try {
-                    BufferedInputStream Candidate=S.getAutoPathFor(wavFileName);
-                    if (Candidate==null) {
-                        Candidate=S.getAutoPathFor("hiba.wav");
+                    BufferedInputStream Candidate = S.getAutoPathFor(wavFileName);
+                    if (Candidate == null) {
+                        Candidate = S.getAutoPathFor("hiba.wav");
                     }
                     wavBuffer = loadWavToBuffer(Candidate);
                     wavBufferLookUpTable.put(wavFileName, wavBuffer);
@@ -185,6 +186,7 @@ public class Director {
             if (mySounderThread != null) {
                 mySounderThread.selfDestruct();
             }
+            stoppedPlaying();
         }
         ignoreClose = false;
         refreshDebug();
@@ -262,8 +264,9 @@ public class Director {
      * VK_SPACE, ignore it (this is an intro sound).<br>
      * If the expected keyCode is -2, accept anything and skip all -2 Directors
      * (this is a quitting sound).<br>
-     * If the expected keyCode is -3, evaluate the typist and construct the
-     * necessary Directors (this is an end-of-typing command).<br>
+     * If the expected keyCode is -3, load the next line (if it exits) and reset
+     * GUI and directorStack (end-of-line). If no more lines exist, evaluate the
+     * typist and construct the necessary Directors (end-of-lecture mode)).<br>
      * If the expected keyCode is -4, this is an "end of lecture" command,
      * remove all remaining Directors and according the settings and available
      * lectures, quit or restart or go to the next one.<br>
@@ -280,7 +283,7 @@ public class Director {
      */
     public static boolean consumeKeyDown(int inputKeyCode) {
         boolean consumed = false;
-
+        System.err.println("DEBUG: cKD: "+inputKeyCode);
         if (inputKeyCode == KeyEvent.VK_ESCAPE) { // We should quit
             G.close();
             return (false);
@@ -303,29 +306,36 @@ public class Director {
 
         if (first.targetKeyCode == -3) { // We should generate the analysis of the type
             first.selfDestruct();
-            generateAnalysis(L.goodCount, L.badCount, L.getCurrentPercent(), L.passPercent);
-            playFirst();
-            return (false);
+//            System.err.println("DEBUG: hNL()): "+L.hasNextLine());
+
+            if (L.hasNextLine()) {
+                G.startLecture(true);
+                return (false);
+            } else {
+                generateAnalysis(L.goodCount, L.badCount, L.getCurrentPercent(), L.passPercent);
+                playFirst();
+                return (false);
+            }
         }
 
         if (first.targetKeyCode == -4) { // We should quit
             destroyAll();
-            if (L.getCurrentPercent()>=L.passPercent) {
-                String nextLectureName=L.getNextLectureName();
-                if (null==nextLectureName) {
+            if (L.getCurrentPercent() >= L.passPercent) {
+                String nextLectureName = L.getNextLectureName();
+                if (null == nextLectureName) {
                     G.close();
                 } else {
                     try {
-                        L=new Lecturer(nextLectureName);
+                        L = new Lecturer(nextLectureName);
                     } catch (IOException IOE) {
-                        App.redAlert(IOE.toString()+" in new Lecturer("+nextLectureName+")");
+                        App.redAlert(IOE.toString() + " in new Lecturer(" + nextLectureName + ")");
                         G.close();
                     }
-                        
+
                     try {
                         Lecturer.progressProperties.put("nextLecture", nextLectureName);
                         new File("lectures").mkdirs();
-                        File LPP= new File("lectures/progress.properties");
+                        File LPP = new File("lectures/progress.properties");
                         LPP.createNewFile();
                         FileOutputStream FOS = new FileOutputStream(LPP);
                         Lecturer.progressProperties.store(FOS, "");
@@ -333,10 +343,11 @@ public class Director {
                     } catch (IOException IOE) {
                         ; // Read-only filesystem or other problem - silently ignoring it
                     }
-                    G.startLecture();
+                    G.startLecture(false);
                 }
             } else {
-                G.startLecture();
+                L.resetLineCounter();
+                G.startLecture(false);
             }
             return (false);
         }
@@ -414,8 +425,6 @@ public class Director {
                 }
             }
         }
-
-        playFirst();
 
 //        System.err.println("DEBUG: returning from consumeKeyDown(" + inputKeyCode + ") with " + consumed);
         return (consumed);

@@ -19,7 +19,8 @@ public class Lecturer {
     private final Properties lectureProperties = new Properties();
     public final static Properties progressProperties;
     private final String lectureName;
-    private final String [] wavDirs;
+    private final String[] wavDirs;
+    private int currentLineID = 1;
     public int passPercent = 80;
     public int badCount = 0;
     public int goodCount = 0;
@@ -29,9 +30,9 @@ public class Lecturer {
         progressProperties = new Properties();
         try {
             BufferedInputStream BIS = new BufferedInputStream(new FileInputStream("lectures/progress.properties"));
-            System.err.println("DEBUG: BIS: "+BIS);
+            System.err.println("DEBUG: BIS: " + BIS);
             progressProperties.load(BIS);
-            System.err.println("DEBUG: progressProperties: "+progressProperties);
+            System.err.println("DEBUG: progressProperties: " + progressProperties);
 
         } catch (IOException E) {
             System.err.println("DEBUG: IOE: " + E.toString()); // Ignore it, we just start from the first lecture (kiosk mode)
@@ -67,17 +68,17 @@ public class Lecturer {
             System.err.println("Lecturer(" + this.lectureName + ") Exception: " + E.toString());
             throw new IOException(E);
         }
-        String [] tmp = lectureProperties.getProperty("WAVDIR", "").split(" ");
-        wavDirs = new String[tmp.length+2];
-        wavDirs[0]="lectures/"+lectureName+"/";
-        wavDirs[1]="lecturesounds/";
+        String[] tmp = lectureProperties.getProperty("WAVDIR", "").split(" ");
+        wavDirs = new String[tmp.length + 2];
+        wavDirs[0] = "lectures/" + lectureName + "/";
+        wavDirs[1] = "lecturesounds/";
         System.arraycopy(tmp, 0, wavDirs, 2, tmp.length);
-        for (int i=2; i<wavDirs.length; i++) {
-            wavDirs[i]="lecturesounds/"+wavDirs[i]+"/";
+        for (int i = 2; i < wavDirs.length; i++) {
+            wavDirs[i] = "lecturesounds/" + wavDirs[i] + "/";
         }
-        
-        System.err.println("DEBUG: Lectures: "+java.util.Arrays.toString(wavDirs));
-        
+
+        System.err.println("DEBUG: Lectures: " + java.util.Arrays.toString(wavDirs));
+
         try {
             passPercent = Integer.parseInt(lectureProperties.getProperty("PASS_PERCENT", "80").trim());
         } catch (NumberFormatException NFE) {
@@ -109,16 +110,30 @@ public class Lecturer {
     }
 
     public String getNextLectureName() {
-        int nextIndex = availableLectures.indexOf(lectureName)+1;
-        return (nextIndex>=availableLectures.size()?null:availableLectures.get(nextIndex));
+        int nextIndex = availableLectures.indexOf(lectureName) + 1;
+        return (nextIndex >= availableLectures.size() ? null : availableLectures.get(nextIndex));
     }
 
-    public String [] getWavDirs() {
+    public String[] getWavDirs() {
         return wavDirs;
+    }
+    
+    public void resetLineCounter() {
+        currentLineID = 1;
+    }
+
+    public boolean hasNextLine() {
+        return (null != lectureProperties.getProperty("TEXT_" + (currentLineID + 1)));
+    }
+
+    public String getCurrentLine() {
+        System.err.println("DEBUG: currentLineID: "+currentLineID);
+        return (lectureProperties.getProperty("TEXT_" + currentLineID));
     }
 
     public String getNextLine() {
-        return lectureProperties.getProperty("TEXT_1", "");
+        currentLineID++;
+        return (getCurrentLine());
     }
 
     public String[] getHelloFilesNames() throws IOException {
@@ -129,8 +144,8 @@ public class Lecturer {
         for (int i = 0; i < helloFilesStrings.length; i++) {
             helloFilesNames[i] = helloFilesStrings[i] + ".wav";
         }
-        
-        System.err.println("DEBUG: gHFNs(): "+java.util.Arrays.toString(helloFilesNames));
+
+        System.err.println("DEBUG: gHFNs(): " + java.util.Arrays.toString(helloFilesNames));
 
         return (helloFilesNames);
     }

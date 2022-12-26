@@ -37,7 +37,7 @@ public class App {
 
         L = new Lecturer(lectureNames.contains(myLecture) ? myLecture : lectureNames.get(0));
 
-        G.startLecture();
+        G.startLecture(false);
 
     }
 }

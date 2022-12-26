@@ -6,9 +6,7 @@ package hu.kwu.tugip;
 
 import static hu.kwu.tugip.App.G;
 import static hu.kwu.tugip.App.L;
-import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;

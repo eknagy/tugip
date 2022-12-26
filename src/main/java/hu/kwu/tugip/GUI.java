@@ -5,7 +5,7 @@
 package hu.kwu.tugip;
 
 import static hu.kwu.tugip.App.L;
-import static hu.kwu.tugip.App.S;
+import static hu.kwu.tugip.Director.playFirst;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -60,7 +60,7 @@ public class GUI extends JFrame {
             return;
         }
         try {
-            // System.err.println("DEBUG: " + textTypedPosition + " " + textToType.substring(0, textTypedPosition));
+             System.err.println("DEBUG: tTP: " + textTypedPosition + " " + textToType.substring(0, textTypedPosition));
             textLabel.setText(PRETEXT + textToType.substring(0, textTypedPosition)
                     + BEFORETARGET + textToType.substring(textTypedPosition, textTypedPosition + 1)
                     + AFTERTARGET + textToType.substring(textTypedPosition + 1) + POSTTEXT);
@@ -81,21 +81,28 @@ public class GUI extends JFrame {
             goodPointCount.setText("" + L.goodCount);
             badPointCount.setText("" + L.badCount);
             L.regeneratePassPanel(passLabel);
+            Director.playFirst();
+
         }
     }
 
-    public void startLecture() {
+    public void startLecture(boolean nextLineMode) {
         String[] helloFileNames = new String[0];
-        try {
-            helloFileNames = L.getHelloFilesNames();
-        } catch (IOException E) {
-            App.redAlert(E.toString());
+
+        textTypedPosition = 0;
+
+        if (nextLineMode) {
+            textToType = L.getNextLine();
+        } else {
+            textToType = L.getCurrentLine();
+            try {
+                helloFileNames = L.getHelloFilesNames();
+            } catch (IOException E) {
+                App.redAlert(E.toString());
+            }
+            L.resetCounts();
         }
 
-        L.resetCounts();
-        textTypedPosition=0;
-        
-        textToType = L.getNextLine();
         regenerateText();
 
         L.regeneratePassPanel(passLabel);
@@ -157,12 +164,12 @@ public class GUI extends JFrame {
             Director.addNew(nextChar + ".wav", targetKeyCode);
         }
 
-        for (int h = helloFileNames.length - 1; h >= 0; h--) {
-            Director.addNew(helloFileNames[h], -1);
+        if (!nextLineMode) {
+            for (int h = helloFileNames.length - 1; h >= 0; h--) {
+                Director.addNew(helloFileNames[h], -1);
+            }
+            Director.addNew("hello.wav", -1);
         }
-
-        Director.addNew("hello.wav", -1);
-
         acceptInput = true;
 
         Director.playFirst();
