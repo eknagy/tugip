@@ -254,7 +254,7 @@ public class GUI extends JFrame {
         JPanel aboutLowerPanel = new JPanel(new GridLayout(1, 2));
         aboutPanel.add(aboutUpperPanel);
         aboutPanel.add(aboutLowerPanel);
-        aboutUpperPanel.add(new JLabel("Tugip v. 0.3.0", SwingConstants.CENTER));
+        aboutUpperPanel.add(new JLabel("Tugip v. 0.4.0", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Gépírás tankönyv: Rácz Hajnalka", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Projektmenedzser: Dr. Nógrádi Judit", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Szoftverfejlesztő: Dr. Nagy Elemér Károly", SwingConstants.CENTER));
