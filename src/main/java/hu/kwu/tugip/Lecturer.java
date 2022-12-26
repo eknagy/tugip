@@ -29,7 +29,10 @@ public class Lecturer {
         progressProperties = new Properties();
         try {
             BufferedInputStream BIS = new BufferedInputStream(new FileInputStream("lectures/progress.properties"));
+            System.err.println("DEBUG: BIS: "+BIS);
             progressProperties.load(BIS);
+            System.err.println("DEBUG: progressProperties: "+progressProperties);
+
         } catch (IOException E) {
             System.err.println("DEBUG: IOE: " + E.toString()); // Ignore it, we just start from the first lecture (kiosk mode)
         }
@@ -126,6 +129,8 @@ public class Lecturer {
         for (int i = 0; i < helloFilesStrings.length; i++) {
             helloFilesNames[i] = helloFilesStrings[i] + ".wav";
         }
+        
+        System.err.println("DEBUG: gHFNs(): "+java.util.Arrays.toString(helloFilesNames));
 
         return (helloFilesNames);
     }

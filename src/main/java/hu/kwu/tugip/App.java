@@ -28,7 +28,9 @@ public class App {
 
         ArrayList<String> lectureNames = Lecturer.listAvailableLecturesSorted();
         String myLecture = Lecturer.progressProperties.getProperty("nextLecture");
-
+        
+        System.err.println("DEBUG: myLecture: "+myLecture+" and lectureNames: "+lectureNames.toString());
+               
         if ((null == lectureNames) || (lectureNames.isEmpty())) {
             redAlert("No lectures: " + lectureNames);
         }

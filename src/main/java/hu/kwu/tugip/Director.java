@@ -10,6 +10,9 @@ import static hu.kwu.tugip.App.S;
 import static hu.kwu.tugip.Sounder.loadWavToBuffer;
 import static hu.kwu.tugip.Sounder.selectedLine;
 import java.awt.event.KeyEvent;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -137,11 +140,16 @@ public class Director {
             } else {
                 System.err.println("DEBUG Director: load   " + this.toString());
                 try {
-                    wavBuffer = loadWavToBuffer(S.getAutoPathFor(wavFileName));
+                    BufferedInputStream Candidate=S.getAutoPathFor(wavFileName);
+                    if (Candidate==null) {
+                        Candidate=S.getAutoPathFor("hiba.wav");
+                    }
+                    wavBuffer = loadWavToBuffer(Candidate);
                     wavBufferLookUpTable.put(wavFileName, wavBuffer);
                 } catch (UnsupportedAudioFileException | IOException E) {
                     G.setIntensity(255, false);
-                    System.err.println("Exception in Director(" + wavFileName + "," + targetKeyCode + "): " + E.toString());
+                    App.redAlert("Exception in Director(" + wavFileName + "," + targetKeyCode + "): " + E.toString());
+//                    System.err.println("Exception in Director(" + wavFileName + "," + targetKeyCode + "): " + E.toString());
                 }
             }
             mySounderThread = new SounderThread(wavBuffer);
@@ -312,6 +320,18 @@ public class Director {
                     } catch (IOException IOE) {
                         App.redAlert(IOE.toString()+" in new Lecturer("+nextLectureName+")");
                         G.close();
+                    }
+                        
+                    try {
+                        Lecturer.progressProperties.put("nextLecture", nextLectureName);
+                        new File("lectures").mkdirs();
+                        File LPP= new File("lectures/progress.properties");
+                        LPP.createNewFile();
+                        FileOutputStream FOS = new FileOutputStream(LPP);
+                        Lecturer.progressProperties.store(FOS, "");
+//                        System.err.println("DEBUG: pP: "+Lecturer.progressProperties);
+                    } catch (IOException IOE) {
+                        ; // Read-only filesystem or other problem - silently ignoring it
                     }
                     G.startLecture();
                 }

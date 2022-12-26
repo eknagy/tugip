@@ -155,17 +155,13 @@ public class Sounder {
         InputStream IS;
         ClassLoader CL = Thread.currentThread().getContextClassLoader();
         for (String CD : L.getWavDirs()) {
-            System.err.println("DEBUG: Trying auto-path: " + CD + wavFileName);
             if (null != (IS = CL.getResourceAsStream(CD + wavFileName))) {
-                System.err.println("DEBUG: Found auto-path: " + CD + wavFileName);
                 return (new BufferedInputStream(IS));
             }
         }
 
         for (String CD : App.SYSTEM_SOUND_DIRS) {
-            System.err.println("DEBUG: Trying auto-path: " + CD + wavFileName);
             if (null != (IS = CL.getResourceAsStream(CD + wavFileName))) {
-                System.err.println("DEBUG: Found auto-path: " + CD + wavFileName);
                 return (new BufferedInputStream(IS));
             }
         }
