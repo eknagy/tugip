@@ -48,7 +48,7 @@ public class Director {
             G.D.setText(Director.toStringAll());
             G.D.repaint();
         } else {
-            System.err.println(Director.toStringAll());
+    //        System.err.println(Director.toStringAll());
         }
     }
 
@@ -193,6 +193,10 @@ public class Director {
     }
 
     public static String[] generateNumberFileNames(int input) {
+        return(generateNumberFileNames(input, new String [0]));
+    }
+    
+    public static String[] generateNumberFileNames(int input, String [] with) {
         String[] TFNP = new String[]{"hiba"};
         if (input < 0) {
             throw new RuntimeException("Can not generateNumber(" + input + ")");
@@ -206,6 +210,13 @@ public class Director {
             TFNP = new String[]{"" + input};
         } else if ((input > 20) && (input < 100)) {
             TFNP = new String[]{"" + (input % 10), "" + (input / 10) * 10};
+        } else if (input == 100) {
+            TFNP = new String[]{"100"};
+        } else if ((input>100) && (input<200)) {
+            String [] secondPart = generateNumberFileNames(input%100);
+            TFNP=new String[secondPart.length+1];
+            System.arraycopy(secondPart, 0, TFNP, 0, secondPart.length);
+            TFNP[TFNP.length-1]="100";
         } else {
             App.redAlert("Can not generateNumber(" + input + ")");
             throw new RuntimeException("Can not generateNumber(" + input + ")");

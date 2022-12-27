@@ -5,7 +5,7 @@
 package hu.kwu.tugip;
 
 import static hu.kwu.tugip.App.L;
-import static hu.kwu.tugip.Director.playFirst;
+import static hu.kwu.tugip.Director.generateNumberFileNames;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -36,7 +36,7 @@ public class GUI extends JFrame {
     private static String textToType = "";
     private static int textTypedPosition = 0;
 
-    private final static Font FONT144 = new Font("Monospaced", Font.BOLD, 144);
+    private final static Font FONT144 = new Font("Monospaced", Font.BOLD, 48);
     private final static Font FONT36 = new Font("Monospaced", Font.BOLD, 36);
 
     private static boolean acceptInput = false;
@@ -60,7 +60,7 @@ public class GUI extends JFrame {
             return;
         }
         try {
-             System.err.println("DEBUG: tTP: " + textTypedPosition + " " + textToType.substring(0, textTypedPosition));
+            System.err.println("DEBUG: tTP: " + textTypedPosition + " " + textToType.substring(0, textTypedPosition));
             textLabel.setText(PRETEXT + textToType.substring(0, textTypedPosition)
                     + BEFORETARGET + textToType.substring(textTypedPosition, textTypedPosition + 1)
                     + AFTERTARGET + textToType.substring(textTypedPosition + 1) + POSTTEXT);
@@ -168,6 +168,11 @@ public class GUI extends JFrame {
             for (int h = helloFileNames.length - 1; h >= 0; h--) {
                 Director.addNew(helloFileNames[h], -1);
             }
+            /*
+            for (String S : generateNumberFileNames(199)) {
+                Director.addNew(S+".wav", -1);
+            }
+             */
             Director.addNew("hello.wav", -1);
         }
         acceptInput = true;
