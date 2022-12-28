@@ -108,7 +108,8 @@ public class GUI extends JFrame {
         L.regeneratePassPanel(passLabel);
 
         Director.addNew(null, -3); // Director uses a stack (FILO) - "generate results" command first
-/*        if (true) {
+        
+        /*        if (true) {
             Stack<String> tmpStack = new Stack<>();
 
             Director.addNew(App.SYSTEMSOUNDDIR+"hello.wav", -2);
@@ -129,6 +130,10 @@ public class GUI extends JFrame {
         for (int i = textToType.length() - 1; i >= 0; i--) {
             String nextChar = textToType.substring(i, i + 1);
             switch (nextChar) {
+                case "\u23CE":
+                    nextChar = "enter";
+                    targetKeyCode = KeyEvent.VK_ENTER;
+                    break;
                 case " ":
                     nextChar = "space";
                     targetKeyCode = KeyEvent.VK_SPACE;
@@ -195,6 +200,7 @@ public class GUI extends JFrame {
                 if (KE.getID() == KeyEvent.KEY_PRESSED) {
                     switch (KE.getExtendedKeyCode()) {
                         case KeyEvent.VK_SPACE:
+                        case KeyEvent.VK_ENTER:
                         case KeyEvent.VK_ESCAPE:
                         case KeyEvent.VK_A:
                         case KeyEvent.VK_D:

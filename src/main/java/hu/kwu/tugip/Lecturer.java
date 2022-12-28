@@ -128,7 +128,7 @@ public class Lecturer {
 
     public String getCurrentLine() {
         System.err.println("DEBUG: currentLineID: "+currentLineID);
-        return (lectureProperties.getProperty("TEXT_" + currentLineID));
+        return (lectureProperties.getProperty("TEXT_" + currentLineID)+"\u23CE"); // .replaceAll(" ", "\u2423")
     }
 
     public String getNextLine() {
