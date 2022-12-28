@@ -231,6 +231,7 @@ public class GUI extends JFrame {
     }
 
     public GUI(Sounder S) {
+        setTitle("TUGIP "+App.VERSION);
         for (int i = 0; i < 256; i++) {
             colorTable[i] = new Color(i << 8);
             colorTable[i + 256] = new Color(i << 16);
@@ -272,7 +273,7 @@ public class GUI extends JFrame {
         JPanel aboutLowerPanel = new JPanel(new GridLayout(1, 2));
         aboutPanel.add(aboutUpperPanel);
         aboutPanel.add(aboutLowerPanel);
-        aboutUpperPanel.add(new JLabel("Tugip v. 0.4.0", SwingConstants.CENTER));
+        aboutUpperPanel.add(new JLabel("Tugip v. "+App.VERSION, SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Gépírás tankönyv: Rácz Hajnalka", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Projektmenedzser: Dr. Nógrádi Judit", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Szoftverfejlesztő: Dr. Nagy Elemér Károly", SwingConstants.CENTER));
