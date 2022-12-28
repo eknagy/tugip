@@ -48,7 +48,7 @@ public class Director {
             G.D.setText(Director.toStringAll());
             G.D.repaint();
         } else {
-    //        System.err.println(Director.toStringAll());
+            //        System.err.println(Director.toStringAll());
         }
     }
 
@@ -73,7 +73,7 @@ public class Director {
     }
 
     public void play() {
-        System.err.println("DEBUG: Playing: "+directorStack.peek());
+        System.err.println("DEBUG: Playing: " + directorStack.peek());
         if (targetKeyCode == -4) {
             consumeKeyDown(KeyEvent.VK_SPACE);
         } else if (targetKeyCode == -3) {
@@ -193,10 +193,7 @@ public class Director {
     }
 
     public static String[] generateNumberFileNames(int input) {
-        return(generateNumberFileNames(input, new String [0]));
-    }
-    
-    public static String[] generateNumberFileNames(int input, String [] with) {
+//        System.err.println("DEBUG: in: " + input);
         String[] TFNP = new String[]{"hiba"};
         if (input < 0) {
             throw new RuntimeException("Can not generateNumber(" + input + ")");
@@ -206,17 +203,51 @@ public class Director {
             TFNP = new String[]{"" + input % 10, "10en"};
         } else if ((input > 20) && (input < 30)) {
             TFNP = new String[]{"" + input % 10, "20on"};
-        } else if ((input > 20) && (input % 10 == 0)) {
+        } else if ((input > 20) && (input < 100) && (input % 10 == 0)) {
             TFNP = new String[]{"" + input};
         } else if ((input > 20) && (input < 100)) {
             TFNP = new String[]{"" + (input % 10), "" + (input / 10) * 10};
         } else if (input == 100) {
             TFNP = new String[]{"100"};
-        } else if ((input>100) && (input<200)) {
-            String [] secondPart = generateNumberFileNames(input%100);
-            TFNP=new String[secondPart.length+1];
+        } else if ((input > 100) && (input < 200)) {
+            String[] secondPart = generateNumberFileNames(input % 100);
+            TFNP = new String[secondPart.length + 1];
             System.arraycopy(secondPart, 0, TFNP, 0, secondPart.length);
-            TFNP[TFNP.length-1]="100";
+            TFNP[TFNP.length - 1] = "100";
+        } else if ((input > 199) && (input < 1000)) {
+            if (input % 100 == 0) {
+                return (new String[]{"100", "" + input / 100});
+            } else {
+                String[] secondPart = generateNumberFileNames(input % 100);
+                TFNP = new String[secondPart.length + 2];
+                System.arraycopy(secondPart, 0, TFNP, 0, secondPart.length);
+                TFNP[TFNP.length - 2] = "100";
+                TFNP[TFNP.length - 1] = "" + input / 100;
+            }
+        } else if (input == 1000) {
+            TFNP = new String[]{"1000"};
+        } else if ((input > 1000) && (input < 2000)) {
+            String[] secondPart = generateNumberFileNames(input % 1000);
+            TFNP = new String[secondPart.length + 1];
+            System.arraycopy(secondPart, 0, TFNP, 0, secondPart.length);
+            TFNP[TFNP.length - 1] = "1000";
+        } else if ((input > 1999) && (input < 1000000)) {
+            if (input % 1000 == 0) {
+                String[] firstPart = generateNumberFileNames(input / 1000);
+                TFNP = new String[1 + firstPart.length];
+                TFNP[0]="1000";
+                System.arraycopy(firstPart, 0, TFNP, 1, firstPart.length);
+            } else {
+                String[] firstPart = generateNumberFileNames(input / 1000);
+                String[] secondPart = generateNumberFileNames(input % 1000);
+//                System.err.println("DEBUG: fP: " + java.util.Arrays.toString(firstPart));
+//                System.err.println("DEBUG: sP: " + java.util.Arrays.toString(secondPart));
+                TFNP = new String[secondPart.length + 1 + firstPart.length];
+                System.arraycopy(secondPart, 0, TFNP, 0, secondPart.length);
+                TFNP[secondPart.length] = "1000";
+                System.arraycopy(firstPart, 0, TFNP, secondPart.length + 1, firstPart.length);
+//                System.err.println("DEBUG: rv: " + java.util.Arrays.toString(TFNP));
+            }
         } else {
             App.redAlert("Can not generateNumber(" + input + ")");
             throw new RuntimeException("Can not generateNumber(" + input + ")");
@@ -294,7 +325,7 @@ public class Director {
      */
     public static boolean consumeKeyDown(int inputKeyCode) {
         boolean consumed = false;
-        System.err.println("DEBUG: cKD: "+inputKeyCode);
+        System.err.println("DEBUG: cKD: " + inputKeyCode);
         if (inputKeyCode == KeyEvent.VK_ESCAPE) { // We should quit
             G.close();
             return (false);
