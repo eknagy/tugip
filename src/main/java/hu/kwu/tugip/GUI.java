@@ -196,6 +196,9 @@ public class GUI extends JFrame {
                 case "l":
                     targetKeyCode = KeyEvent.VK_L;
                     break;
+                case "r":
+                    targetKeyCode = KeyEvent.VK_R;
+                    break;
                 case "s":
                     targetKeyCode = KeyEvent.VK_S;
                     break;
@@ -243,6 +246,7 @@ public class GUI extends JFrame {
                         case KeyEvent.VK_ENTER:
                         case KeyEvent.VK_ESCAPE:
                         case KeyEvent.VK_A:
+                        case KeyEvent.VK_R:
                         case KeyEvent.VK_D:
                         case KeyEvent.VK_F:
                         case KeyEvent.VK_J:
