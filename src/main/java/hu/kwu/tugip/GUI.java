@@ -5,7 +5,6 @@
 package hu.kwu.tugip;
 
 import static hu.kwu.tugip.App.L;
-import static hu.kwu.tugip.Director.generateNumberFileNames;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -28,15 +27,16 @@ public class GUI extends JFrame {
 
     public static boolean debugMode = false;
 
-    private final static String PRETEXT = "<html><div style='text-align: center;'><div style='background-color: #C0FFC0'>";
-    private final static String POSTTEXT = "</div><html>";
-    private final static String BEFORETARGET = "</div><div style='background-color: yellow'>";
-    private final static String AFTERTARGET = "</div>";
+    private final static String PRETEXT = "<html><font style='text-align: center;'><font style='background-color: #C0FFC0'>";
+    private final static String POSTTEXT = "</font><html>";
+    private final static String BEFORETARGET = "</font><font style='background-color: yellow'>";
+    private final static String AFTERTARGET = "</font>";
 
     private static String textToType = "";
     private static int textTypedPosition = 0;
 
-    private final static Font FONT144 = new Font("Monospaced", Font.BOLD, 48);
+    private final static Font FONT144 = new Font("Monospaced", Font.BOLD, 144);
+    private final static Font FONT72 = new Font("Monospaced", Font.BOLD, 72);
     private final static Font FONT36 = new Font("Monospaced", Font.BOLD, 36);
 
     private static boolean acceptInput = false;
@@ -46,17 +46,56 @@ public class GUI extends JFrame {
     private final JLabel badPointCount = new JLabel("0", SwingConstants.CENTER);
     private final JLabel passLabel = new JLabel("??% (??%)", SwingConstants.CENTER);
     private final JPanel visualiserPanel = new JPanel();
-    private final JPanel textPanel = new JPanel(new BorderLayout());
+
+    private final static int TEXTPANELROWS = 5;
+    private final static int TEXTPANELCOLS = 20;
+
+    private final JPanel textPanel = new JPanel(new GridLayout(TEXTPANELROWS, TEXTPANELCOLS));
+    private final JLabel[] textLabels = new JLabel[TEXTPANELCOLS * TEXTPANELROWS];
+
     private final JPanel debugPanel = new JPanel(new BorderLayout());
-    private final JLabel textLabel = new JLabel(PRETEXT + POSTTEXT);
+//    private final JLabel textLabel = new JLabel(PRETEXT + POSTTEXT);
     private final JPanel aboutPanel = new JPanel(new GridLayout(2, 1));
     private final Color[] colorTable = new Color[2 * 256];
 
     public final TextArea D = new TextArea("DEBUG: Loading...");
     public final TextArea DI = new TextArea("DEBUG: Loading...");
+    
+    private int lastRegenerateIndex=-1;
 
-    public void regenerateText() {
-        if (textToType.length() == 0) {
+    public void regenerateText(boolean forceAll) {
+        int from=0;
+        int to=0;
+        if ((forceAll) || (lastRegenerateIndex==-1)){
+            from=0;
+            to=textLabels.length;
+            lastRegenerateIndex=textTypedPosition;
+        } else {
+            from=Math.max(0,textTypedPosition-1);
+            to=Math.min(textTypedPosition+1,textLabels.length);
+            lastRegenerateIndex=textTypedPosition;
+        }
+        String CL = L.getCurrentLine();
+        System.err.println("DEBUG: regenerateText("+forceAll+") from "+from+" to "+to);
+        for (int i = from; i < to; i++) {
+            if (i<CL.length()) {
+                if (i<textTypedPosition) {
+                    textLabels[i].setBackground(Color.green);
+                } else if (i==textTypedPosition) {
+                    textLabels[i].setBackground(Color.yellow);
+                } else {
+                    textLabels[i].setBackground(Color.white);
+                }
+                textLabels[i].setText(CL.substring(i, i+1));
+            } else {
+                textLabels[i].setText("");
+                textLabels[i].setBackground(Color.lightGray);
+            }
+        }
+    }
+
+    public void regenerateTextOld() {
+        /*        if (textToType.length() == 0) {
             return;
         }
         try {
@@ -65,18 +104,17 @@ public class GUI extends JFrame {
                     + BEFORETARGET + textToType.substring(textTypedPosition, textTypedPosition + 1)
                     + AFTERTARGET + textToType.substring(textTypedPosition + 1) + POSTTEXT);
         } catch (IndexOutOfBoundsException I) {
-//            System.err.println("DEBUG: " + textTypedPosition + " IOOBE");
             textLabel.setText(PRETEXT + textToType + POSTTEXT);
         }
         textLabel.updateUI();
-    }
+         */    }
 
     public void processKeyCode(int keyCode) {
         DI.setText(DI.getText() + " " + keyCode);
         if (acceptInput) {
             if (Director.consumeKeyDown(keyCode)) {
                 textTypedPosition++;
-                regenerateText();
+                regenerateText(false);
             }
             goodPointCount.setText("" + L.goodCount);
             badPointCount.setText("" + L.badCount);
@@ -103,12 +141,12 @@ public class GUI extends JFrame {
             L.resetCounts();
         }
 
-        regenerateText();
+        regenerateText(true);
 
         L.regeneratePassPanel(passLabel);
 
         Director.addNew(null, -3); // Director uses a stack (FILO) - "generate results" command first
-        
+
         /*        if (true) {
             Stack<String> tmpStack = new Stack<>();
 
@@ -124,7 +162,6 @@ public class GUI extends JFrame {
             return;
         }
          */
-
         int targetKeyCode = -1;
 
         for (int i = textToType.length() - 1; i >= 0; i--) {
@@ -180,6 +217,9 @@ public class GUI extends JFrame {
              */
             Director.addNew("hello.wav", -1);
         }
+        setVisible(true);
+        textPanel.requestFocusInWindow();
+
         acceptInput = true;
 
         Director.playFirst();
@@ -231,7 +271,19 @@ public class GUI extends JFrame {
     }
 
     public GUI(Sounder S) {
-        setTitle("TUGIP "+App.VERSION);
+        setTitle("TUGIP " + App.VERSION);
+
+        for (int i = 0; i < textLabels.length; i++) {
+            JLabel TL = new JLabel(" ");
+            textLabels[i] = TL;
+            TL.setOpaque(true);
+            textPanel.add(TL);
+            TL.setFont(FONT72);
+            TL.setVerticalAlignment(SwingConstants.CENTER);
+            TL.setHorizontalAlignment(SwingConstants.CENTER);
+            // TL.setPreferredSize(new Dimension(1000, 600));
+        }
+
         for (int i = 0; i < 256; i++) {
             colorTable[i] = new Color(i << 8);
             colorTable[i + 256] = new Color(i << 16);
@@ -273,20 +325,20 @@ public class GUI extends JFrame {
         JPanel aboutLowerPanel = new JPanel(new GridLayout(1, 2));
         aboutPanel.add(aboutUpperPanel);
         aboutPanel.add(aboutLowerPanel);
-        aboutUpperPanel.add(new JLabel("Tugip v. "+App.VERSION, SwingConstants.CENTER));
+        aboutUpperPanel.add(new JLabel("Tugip v. " + App.VERSION, SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Gépírás tankönyv: Rácz Hajnalka", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Projektmenedzser: Dr. Nógrádi Judit", SwingConstants.CENTER));
         aboutUpperPanel.add(new JLabel("Szoftverfejlesztő: Dr. Nagy Elemér Károly", SwingConstants.CENTER));
         aboutLowerPanel.add(new JLabel("A projektet a Gyengénlátók Általános Iskolája, EGYMI és Kollégiuma támogatta.", SwingConstants.CENTER));
         aboutLowerPanel.add(new JLabel("A projektet az FSF.hu Alapítvány a Szabad Szoftver Pályázat 2022 keretén belül támogatta.", SwingConstants.CENTER));
         textPanel.setBackground(Color.WHITE);
+        /*
         textPanel.add(textLabel, BorderLayout.CENTER);
-
         textLabel.setFont(FONT144);
         textLabel.setVerticalAlignment(SwingConstants.CENTER);
         textLabel.setHorizontalAlignment(SwingConstants.CENTER);
         textLabel.setPreferredSize(new Dimension(1000, 600));
-
+         */
         if (debugMode) {
             textPanel.add(debugPanel, BorderLayout.NORTH);
 
@@ -299,8 +351,6 @@ public class GUI extends JFrame {
         debugPanel.add(D, BorderLayout.CENTER);
         debugPanel.add(DI, BorderLayout.SOUTH);
         pack();
-        setVisible(true);
-        textLabel.requestFocusInWindow();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         registerKeyHandler();
