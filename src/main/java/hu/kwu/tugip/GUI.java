@@ -27,11 +27,6 @@ public class GUI extends JFrame {
 
     public static boolean debugMode = false;
 
-    private final static String PRETEXT = "<html><font style='text-align: center;'><font style='background-color: #C0FFC0'>";
-    private final static String POSTTEXT = "</font><html>";
-    private final static String BEFORETARGET = "</font><font style='background-color: yellow'>";
-    private final static String AFTERTARGET = "</font>";
-
     private static String textToType = "";
     private static int textTypedPosition = 0;
 
@@ -54,60 +49,44 @@ public class GUI extends JFrame {
     private final JLabel[] textLabels = new JLabel[TEXTPANELCOLS * TEXTPANELROWS];
 
     private final JPanel debugPanel = new JPanel(new BorderLayout());
-//    private final JLabel textLabel = new JLabel(PRETEXT + POSTTEXT);
     private final JPanel aboutPanel = new JPanel(new GridLayout(2, 1));
     private final Color[] colorTable = new Color[2 * 256];
 
     public final TextArea D = new TextArea("DEBUG: Loading...");
     public final TextArea DI = new TextArea("DEBUG: Loading...");
-    
-    private int lastRegenerateIndex=-1;
+
+    private int lastRegenerateIndex = -1;
 
     public void regenerateText(boolean forceAll) {
-        int from=0;
-        int to=0;
-        if ((forceAll) || (lastRegenerateIndex==-1)){
-            from=0;
-            to=textLabels.length;
-            lastRegenerateIndex=textTypedPosition;
+        int from = 0;
+        int to = 0;
+        if ((forceAll) || (lastRegenerateIndex == -1)) {
+            from = 0;
+            to = textLabels.length;
+            lastRegenerateIndex = textTypedPosition;
         } else {
-            from=Math.max(0,textTypedPosition-1);
-            to=Math.min(textTypedPosition+1,textLabels.length);
-            lastRegenerateIndex=textTypedPosition;
+            from = Math.max(0, textTypedPosition - 1);
+            to = Math.min(textTypedPosition + 1, textLabels.length);
+            lastRegenerateIndex = textTypedPosition;
         }
         String CL = L.getCurrentLine();
-        System.err.println("DEBUG: regenerateText("+forceAll+") from "+from+" to "+to);
+        System.err.println("DEBUG: regenerateText(" + forceAll + ") from " + from + " to " + to);
         for (int i = from; i < to; i++) {
-            if (i<CL.length()) {
-                if (i<textTypedPosition) {
+            if (i < CL.length()) {
+                if (i < textTypedPosition) {
                     textLabels[i].setBackground(Color.green);
-                } else if (i==textTypedPosition) {
+                } else if (i == textTypedPosition) {
                     textLabels[i].setBackground(Color.yellow);
                 } else {
                     textLabels[i].setBackground(Color.white);
                 }
-                textLabels[i].setText(CL.substring(i, i+1));
+                textLabels[i].setText(CL.substring(i, i + 1));
             } else {
                 textLabels[i].setText("");
                 textLabels[i].setBackground(Color.lightGray);
             }
         }
     }
-
-    public void regenerateTextOld() {
-        /*        if (textToType.length() == 0) {
-            return;
-        }
-        try {
-            System.err.println("DEBUG: tTP: " + textTypedPosition + " " + textToType.substring(0, textTypedPosition));
-            textLabel.setText(PRETEXT + textToType.substring(0, textTypedPosition)
-                    + BEFORETARGET + textToType.substring(textTypedPosition, textTypedPosition + 1)
-                    + AFTERTARGET + textToType.substring(textTypedPosition + 1) + POSTTEXT);
-        } catch (IndexOutOfBoundsException I) {
-            textLabel.setText(PRETEXT + textToType + POSTTEXT);
-        }
-        textLabel.updateUI();
-         */    }
 
     public void processKeyCode(int keyCode) {
         DI.setText(DI.getText() + " " + keyCode);
@@ -120,7 +99,6 @@ public class GUI extends JFrame {
             badPointCount.setText("" + L.badCount);
             L.regeneratePassPanel(passLabel);
             Director.playFirst();
-
         }
     }
 
