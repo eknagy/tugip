@@ -64,6 +64,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("\u23CE", KeyEvent.VK_ENTER);
         EXPECTED_KEYCODES.put(" ", KeyEvent.VK_SPACE);
         EXPECTED_KEYCODES.put("a", KeyEvent.VK_A);
+        EXPECTED_KEYCODES.put("á", 16777441);
         EXPECTED_KEYCODES.put("d", KeyEvent.VK_D);
         EXPECTED_KEYCODES.put("é", 16777449);
         EXPECTED_KEYCODES.put("f", KeyEvent.VK_F);
@@ -202,7 +203,7 @@ public class GUI extends JFrame {
             public boolean dispatchKeyEvent(KeyEvent KE) {
                 if (KE.getID() == KeyEvent.KEY_PRESSED) {
                     int EKC = KE.getExtendedKeyCode();
-                    if (EXPECTED_KEYCODES.containsValue(EKC)) {
+                    if ((EXPECTED_KEYCODES.containsValue(EKC)) || (EKC==KeyEvent.VK_ESCAPE)) {
                         processKeyCode(EKC);
                     } else if (EKC == KeyEvent.VK_CAPS_LOCK || EKC == KeyEvent.VK_SHIFT) {
                         textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
