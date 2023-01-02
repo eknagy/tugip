@@ -63,6 +63,7 @@ public class GUI extends JFrame {
     static {
         EXPECTED_KEYCODES.put("\u23CE", KeyEvent.VK_ENTER);
         EXPECTED_KEYCODES.put(" ", KeyEvent.VK_SPACE);
+        EXPECTED_KEYCODES.put(",", KeyEvent.VK_COMMA);
         EXPECTED_KEYCODES.put("a", KeyEvent.VK_A);
         EXPECTED_KEYCODES.put("á", 16777441);
         EXPECTED_KEYCODES.put("d", KeyEvent.VK_D);
@@ -75,6 +76,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("m", KeyEvent.VK_M);
         EXPECTED_KEYCODES.put("r", KeyEvent.VK_R);
         EXPECTED_KEYCODES.put("s", KeyEvent.VK_S);
+        EXPECTED_KEYCODES.put("v", KeyEvent.VK_V);
     }
 
     public void regenerateText(boolean forceAll) {
@@ -171,6 +173,8 @@ public class GUI extends JFrame {
                 nextChar = "enter";
             } else if (" ".equals(nextChar)) {
                 nextChar = "space";
+            } else if (",".equals(nextChar)) {
+                nextChar = "vessz";
             }
             Director.addNew(nextChar + ".wav", targetKeyCode);
         }
