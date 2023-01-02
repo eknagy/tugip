@@ -18,12 +18,15 @@ import java.awt.TextArea;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.HashMap;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class GUI extends JFrame {
+
+    private final static HashMap<String, Integer> EXPECTED_KEYCODES = new HashMap<>();
 
     public static boolean debugMode = false;
 
@@ -56,6 +59,21 @@ public class GUI extends JFrame {
     public final TextArea DI = new TextArea("DEBUG: Loading...");
 
     private int lastRegenerateIndex = -1;
+
+    static {
+        EXPECTED_KEYCODES.put("\u23CE", KeyEvent.VK_ENTER);
+        EXPECTED_KEYCODES.put(" ", KeyEvent.VK_SPACE);
+        EXPECTED_KEYCODES.put("a", KeyEvent.VK_A);
+        EXPECTED_KEYCODES.put("d", KeyEvent.VK_D);
+        EXPECTED_KEYCODES.put("é", 16777449);
+        EXPECTED_KEYCODES.put("f", KeyEvent.VK_F);
+        EXPECTED_KEYCODES.put("i", KeyEvent.VK_I);
+        EXPECTED_KEYCODES.put("j", KeyEvent.VK_J);
+        EXPECTED_KEYCODES.put("k", KeyEvent.VK_K);
+        EXPECTED_KEYCODES.put("l", KeyEvent.VK_L);
+        EXPECTED_KEYCODES.put("r", KeyEvent.VK_R);
+        EXPECTED_KEYCODES.put("s", KeyEvent.VK_S);
+    }
 
     public void regenerateText(boolean forceAll) {
         int from = 0;
@@ -140,53 +158,18 @@ public class GUI extends JFrame {
             return;
         }
          */
-        int targetKeyCode = -1;
-
         for (int i = textToType.length() - 1; i >= 0; i--) {
             String nextChar = textToType.substring(i, i + 1);
-            switch (nextChar) {
-                case "\u23CE":
-                    nextChar = "enter";
-                    targetKeyCode = KeyEvent.VK_ENTER;
-                    break;
-                case " ":
-                    nextChar = "space";
-                    targetKeyCode = KeyEvent.VK_SPACE;
-                    break;
-                case "a":
-                    targetKeyCode = KeyEvent.VK_A;
-                    break;
-                case "d":
-                    targetKeyCode = KeyEvent.VK_D;
-                    break;
-                case "é":
-                    targetKeyCode = 16777449;
-                    break;
-                case "f":
-                    targetKeyCode = KeyEvent.VK_F;
-                    break;
-                case "i":
-                    targetKeyCode = KeyEvent.VK_I;
-                    break;
-                case "j":
-                    targetKeyCode = KeyEvent.VK_J;
-                    break;
-                case "k":
-                    targetKeyCode = KeyEvent.VK_K;
-                    break;
-                case "l":
-                    targetKeyCode = KeyEvent.VK_L;
-                    break;
-                case "r":
-                    targetKeyCode = KeyEvent.VK_R;
-                    break;
-                case "s":
-                    targetKeyCode = KeyEvent.VK_S;
-                    break;
-                default:
-                    System.err.println("Error: unhandled next char in GUI: " + nextChar);
+            if (!EXPECTED_KEYCODES.containsKey(nextChar)) {
+                App.redAlert("Error: unhandled next char in GUI: " + nextChar);
             }
-//            System.err.println("DEBUG: " + nextChar + " " + targetKeyCode);
+            int targetKeyCode = EXPECTED_KEYCODES.get(nextChar);
+
+            if ("\u23CE".equals(nextChar)) {
+                nextChar = "enter";
+            } else if (" ".equals(nextChar)) {
+                nextChar = "space";
+            }
             Director.addNew(nextChar + ".wav", targetKeyCode);
         }
 
@@ -194,11 +177,6 @@ public class GUI extends JFrame {
             for (int h = helloFileNames.length - 1; h >= 0; h--) {
                 Director.addNew(helloFileNames[h], -1);
             }
-            /*
-            for (String S : generateNumberFileNames(199)) {
-                Director.addNew(S+".wav", -1);
-            }
-             */
             Director.addNew("hello.wav", -1);
         }
         setVisible(true);
@@ -222,33 +200,20 @@ public class GUI extends JFrame {
             @Override
             public boolean dispatchKeyEvent(KeyEvent KE) {
                 if (KE.getID() == KeyEvent.KEY_PRESSED) {
-                    switch (KE.getExtendedKeyCode()) {
-                        case KeyEvent.VK_SPACE:
-                        case KeyEvent.VK_ENTER:
-                        case KeyEvent.VK_ESCAPE:
-                        case KeyEvent.VK_A:
-                        case KeyEvent.VK_R:
-                        case KeyEvent.VK_D:
-                        case KeyEvent.VK_F:
-                        case KeyEvent.VK_I:
-                        case KeyEvent.VK_J:
-                        case KeyEvent.VK_K:
-                        case KeyEvent.VK_L:
-                        case KeyEvent.VK_S:
-                        case 16777449: // Hungarian é
-                            processKeyCode(KE.getExtendedKeyCode());
-                            break;
-                        case KeyEvent.VK_CAPS_LOCK:
-                        case KeyEvent.VK_SHIFT:
-                            textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
-                            break;
-                        default:
-                            System.err.println("DEBUG: Unknown KeyEvent: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
-                            ; // Ignore
+                    int EKC = KE.getExtendedKeyCode();
+                    if (EXPECTED_KEYCODES.containsValue(EKC)) {
+                        processKeyCode(EKC);
+                    } else if (EKC == KeyEvent.VK_CAPS_LOCK || EKC == KeyEvent.VK_SHIFT) {
+                        textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
+                        // Caps lock press or shift down
+                    } else {
+                        System.err.println("DEBUG: Unknown KeyEvent: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
+                        // Ignore
                     }
                     return (true);
                 } else if ((KE.getID() == KeyEvent.KEY_RELEASED) && (KE.getExtendedKeyCode() == KeyEvent.VK_SHIFT)) {
                     textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
+                    // Shift up
                 }
                 return (false);
             }
