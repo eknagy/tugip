@@ -78,6 +78,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("m", KeyEvent.VK_M);
         EXPECTED_KEYCODES.put("r", KeyEvent.VK_R);
         EXPECTED_KEYCODES.put("s", KeyEvent.VK_S);
+        EXPECTED_KEYCODES.put("t", KeyEvent.VK_T);
         EXPECTED_KEYCODES.put("v", KeyEvent.VK_V);
     }
 
@@ -182,6 +183,7 @@ public class GUI extends JFrame {
         }
 
         if (!nextLineMode) {
+            Director.addNew("uss_egy_szokozt_ha_kezdhetjuk.wav", -1);
             for (int h = helloFileNames.length - 1; h >= 0; h--) {
                 Director.addNew(helloFileNames[h], -1);
             }
