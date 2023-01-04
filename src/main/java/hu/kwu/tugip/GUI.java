@@ -70,18 +70,21 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("e", KeyEvent.VK_E);
         EXPECTED_KEYCODES.put("é", 16777449);
         EXPECTED_KEYCODES.put("f", KeyEvent.VK_F);
+        EXPECTED_KEYCODES.put("g", KeyEvent.VK_G);
         EXPECTED_KEYCODES.put("h", KeyEvent.VK_H);
         EXPECTED_KEYCODES.put("i", KeyEvent.VK_I);
         EXPECTED_KEYCODES.put("j", KeyEvent.VK_J);
         EXPECTED_KEYCODES.put("k", KeyEvent.VK_K);
         EXPECTED_KEYCODES.put("l", KeyEvent.VK_L);
         EXPECTED_KEYCODES.put("m", KeyEvent.VK_M);
+        EXPECTED_KEYCODES.put("o", KeyEvent.VK_O);
         EXPECTED_KEYCODES.put("ő", 16777553);
         EXPECTED_KEYCODES.put("r", KeyEvent.VK_R);
         EXPECTED_KEYCODES.put("s", KeyEvent.VK_S);
         EXPECTED_KEYCODES.put("t", KeyEvent.VK_T);
         EXPECTED_KEYCODES.put("u", KeyEvent.VK_U);
         EXPECTED_KEYCODES.put("v", KeyEvent.VK_V);
+        EXPECTED_KEYCODES.put("z", KeyEvent.VK_Z);
     }
 
     public void regenerateText(boolean forceAll) {
