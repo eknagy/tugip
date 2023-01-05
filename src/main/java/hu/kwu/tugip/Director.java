@@ -7,7 +7,7 @@ package hu.kwu.tugip;
 import static hu.kwu.tugip.App.G;
 import static hu.kwu.tugip.App.L;
 import static hu.kwu.tugip.App.S;
-import static hu.kwu.tugip.Sounder.loadWavToBuffer;
+import static hu.kwu.tugip.Sounder.loadWavsToBuffer;
 import static hu.kwu.tugip.Sounder.selectedLine;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
@@ -28,15 +28,17 @@ public class Director {
     private final static Stack<Director> directorStack; // Stack of directors - as a sound file queue
 
     private int targetKeyCode = -1;
+    private char targetKeyChar = '\0';
     private byte[] wavBuffer = null;
     private SounderThread mySounderThread = null;
-    private String wavFileName = null;
+    private String[] wavFileNames = null;
+    private String wavFileNamesString = null;
     private boolean playing = false;
     private static boolean ignoreClose = false;
 
     @Override
     public String toString() {
-        return super.toString() + " " + targetKeyCode + " " + wavFileName + (isPlaying() ? " (playing)" : "");
+        return super.toString() + " " + targetKeyCode + " " + java.util.Arrays.toString(wavFileNames) + (isPlaying() ? " (playing)" : "");
     }
 
     public boolean isPlaying() {
@@ -75,9 +77,9 @@ public class Director {
     public void play() {
         System.err.println("DEBUG: Playing: " + directorStack.peek());
         if (targetKeyCode == -4) {
-            consumeKeyDown(KeyEvent.VK_SPACE);
+            consumeKeyDown(KeyEvent.VK_SPACE, ' ');
         } else if (targetKeyCode == -3) {
-            consumeKeyDown(KeyEvent.VK_SPACE);
+            consumeKeyDown(KeyEvent.VK_SPACE, ' ');
         } else if ((mySounderThread != null) && (!mySounderThread.isAlive()) && (!mySounderThread.started)) {
             try {
                 mySounderThread.start();
@@ -128,28 +130,33 @@ public class Director {
         });
     }
 
-    private Director(String wavFileName, int targetKeyCode) {
-        this.wavFileName = wavFileName;
-        if (wavFileName == null) { // No sound file, this is a special command Director (like "evaluate typist")
-            this.targetKeyCode = targetKeyCode;
+    private Director(String[] wavFileNames, int targetKeyCode, char targetKeyChar) {
+        this.wavFileNames = wavFileNames;
+        this.targetKeyChar = targetKeyChar;
+        this.targetKeyCode = targetKeyCode;
+        if (wavFileNames == null) { // No sound file, this is a special command Director (like "evaluate typist")
             mySounderThread = null;
         } else {
-            this.targetKeyCode = targetKeyCode;
-            if (wavBufferLookUpTable.containsKey(wavFileName)) {
-                wavBuffer = wavBufferLookUpTable.get(wavFileName);
+            wavFileNamesString = java.util.Arrays.toString(wavFileNames);
+//            System.err.println("DEBUG: new Director(): "+toString());
+            if (wavBufferLookUpTable.containsKey(wavFileNamesString)) {
+                wavBuffer = wavBufferLookUpTable.get(wavFileNamesString);
                 System.err.println("DEBUG Director: lookup " + this.toString());
             } else {
                 System.err.println("DEBUG Director: load   " + this.toString());
                 try {
-                    BufferedInputStream Candidate = S.getAutoPathFor(wavFileName);
-                    if (Candidate == null) {
-                        Candidate = S.getAutoPathFor("hiba.wav");
+                    BufferedInputStream[] Candidates = new BufferedInputStream[wavFileNames.length];
+                    for (int i = 0; i < Candidates.length; i++) {
+                        Candidates[i] = S.getAutoPathFor(wavFileNames[i]);
+                        if (Candidates[i] == null) {
+                            Candidates[i] = S.getAutoPathFor("hiba.wav");
+                        }
                     }
-                    wavBuffer = loadWavToBuffer(Candidate);
-                    wavBufferLookUpTable.put(wavFileName, wavBuffer);
+                    wavBuffer = loadWavsToBuffer(Candidates);
+                    wavBufferLookUpTable.put(wavFileNamesString, wavBuffer);
                 } catch (UnsupportedAudioFileException | IOException E) {
                     G.setIntensity(255, false);
-                    App.redAlert("Exception in Director(" + wavFileName + "," + targetKeyCode + "): " + E.toString());
+                    App.redAlert("Exception in Director(" + wavFileNamesString + "," + targetKeyCode + "): " + E.toString());
 //                    System.err.println("Exception in Director(" + wavFileName + "," + targetKeyCode + "): " + E.toString());
                 }
             }
@@ -158,8 +165,19 @@ public class Director {
     }
 
     public static void addNew(String wavFileName, int targetKeyCode) {
+        addNew(wavFileName, targetKeyCode, '\0');
+    }
+
+    public static void addNew(String wavFileName, int targetKeyCode, char targetKeyChar) {
         synchronized (directorStack) {
-            directorStack.push(new Director(wavFileName, targetKeyCode));
+            directorStack.push(new Director(new String[]{wavFileName}, targetKeyCode, targetKeyChar));
+            refreshDebug();
+        }
+    }
+
+    public static void addNew(String[] wavFileNames, int targetKeyCode, char targetKeyChar) {
+        synchronized (directorStack) {
+            directorStack.push(new Director(wavFileNames, targetKeyCode, targetKeyChar));
             refreshDebug();
         }
     }
@@ -235,7 +253,7 @@ public class Director {
             if (input % 1000 == 0) {
                 String[] firstPart = generateNumberFileNames(input / 1000);
                 TFNP = new String[1 + firstPart.length];
-                TFNP[0]="1000";
+                TFNP[0] = "1000";
                 System.arraycopy(firstPart, 0, TFNP, 1, firstPart.length);
             } else {
                 String[] firstPart = generateNumberFileNames(input / 1000);
@@ -263,6 +281,14 @@ public class Director {
         }
 
         return tmpDeque.toArray(new String[0]);
+    }
+
+    public boolean targetMatches(int targetKeyCode, char targetKeyChar) {
+        if (L.ignoreCase == true) {
+            return (this.targetKeyCode == targetKeyCode);
+        } else {
+            return ((this.targetKeyCode == targetKeyCode) && (this.targetKeyChar == targetKeyChar));
+        }
     }
 
     public static void generateAnalysis(int goodPoints, int badPoints, int currentPercent, int targetPercent) {
@@ -306,12 +332,13 @@ public class Director {
      * VK_SPACE, ignore it (this is an intro sound).<br>
      * If the expected keyCode is -2, accept anything and skip all -2 Directors
      * (this is a quitting sound).<br>
-     * If the expected keyCode is -3, load the next line (if it exits) and reset
-     * GUI and directorStack (end-of-line). If no more lines exist, evaluate the
-     * typist and construct the necessary Directors (end-of-lecture mode)).<br>
-     * If the expected keyCode is -4, this is an "end of lecture" command,
-     * remove all remaining Directors and according the settings and available
-     * lectures, quit or restart or go to the next one.<br>
+     * If the expected keyCode is -3 / End of Line, load the next line (if it
+     * exits) and reset GUI and directorStack (end-of-line). If no more lines
+     * exist, evaluate the typist and construct the necessary Directors
+     * (end-of-lecture mode)).<br>
+     * If the expected keyCode is -4 / End of Lecture, remove all remaining
+     * Directors and according the settings and available lectures, quit or
+     * restart or go to the next lecture.<br>
      * If the expected keyCode matches the input, destruct the Director on the
      * top of the stack, start the next and return true (the typist hit a
      * matching or good key)<br>
@@ -323,7 +350,7 @@ public class Director {
      * @return true, if the KeyCode is consumed and typist should progress a
      * character forward, false otherwise<br>
      */
-    public static boolean consumeKeyDown(int inputKeyCode) {
+    public static boolean consumeKeyDown(int inputKeyCode, char inputKeyChar) {
         boolean consumed = false;
         System.err.println("DEBUG: cKD: " + inputKeyCode);
         if (inputKeyCode == KeyEvent.VK_ESCAPE) { // We should quit
@@ -337,7 +364,7 @@ public class Director {
 
         Director first = directorStack.peek();
 
-        if (first.targetKeyCode == -2) { // We should skip all -2 sounds (typist analisys).
+        if (first.targetKeyCode == -2) { // We should skip all -2 sounds (typist analisys playback).
             first.selfDestruct();
             while ((!directorStack.isEmpty()) && (directorStack.peek().targetKeyCode == -2)) {
                 directorStack.pop();
@@ -346,9 +373,8 @@ public class Director {
             return (false);
         }
 
-        if (first.targetKeyCode == -3) { // We should generate the analysis of the type
+        if (first.targetKeyCode == -3) { // End of line signal
             first.selfDestruct();
-//            System.err.println("DEBUG: hNL()): "+L.hasNextLine());
 
             if (L.hasNextLine()) {
                 G.startLecture(true);
@@ -360,7 +386,7 @@ public class Director {
             }
         }
 
-        if (first.targetKeyCode == -4) { // We should quit
+        if (first.targetKeyCode == -4) { // End of Lecture
             destroyAll();
             if (L.getCurrentPercent() >= L.passPercent) {
                 String nextLectureName = L.getNextLectureName();
@@ -397,12 +423,9 @@ public class Director {
         if (first.targetKeyCode == -1) {
             if (inputKeyCode == KeyEvent.VK_SPACE) {
 //                System.err.println("DEBUG: got space during intro - eat all intro sounds (KeyCode==-1) and stop sound and return false.");
-//                System.err.println("DEBUG: first: "+first);
-
                 ignoreClose = true;
                 synchronized (directorStack) {
                     first = directorStack.pop(); // We will destroy it later, but first we destroy all following intro sounds to prevent autoplay
-
 //                    System.err.println("DEBUG: prep: "+directorStack.peek());
                     while ((!directorStack.isEmpty()) && (directorStack.peek().targetKeyCode == -1)) {
                         System.err.println("DEBUG: -1 SD peek: " + directorStack.peek());
@@ -411,17 +434,15 @@ public class Director {
                     }
                     System.err.println("DEBUG: -1 SD next: " + directorStack.peek());
                     first.selfDestruct();
-//                    System.err.println("DEBUG: play: "+directorStack.peek());
                     playFirst();
                 }
                 ignoreClose = false;
-
             } else {
-                // We are waiting for a space to skip the intro - ignore keystroke
+                // We are waiting for a space to skip the intro - ignore other keystroke
             }
             return (false);
         } else {
-            // We have to find the first non-zero inputKeyCode - error sounds no keypress, but the first normal ones after errors do
+            // We have to find the first non-zero inputKeyCode - error sounds consume no keypress, but the first normal ones after errors do
             // If the first non-zero matches, we need to stop and remove all pending error sounds before (including) current
             // If the first non-zero does not match, we need to insert another error sound right before it, and we have to rewind it
             if (first.targetKeyCode == 0) {
@@ -438,7 +459,7 @@ public class Director {
                     throw new RuntimeException("FATAL: CAN NOT HAPPEN: ONLY ERRORS IN DIRECTORSTACK.");
                 }
 //                System.err.println("DEBUG: MYBUG: Expected "+firstNotError.targetKeyCode+" and got "+inputKeyCode);
-                if (firstNotError.targetKeyCode == inputKeyCode) {
+                if (firstNotError.targetMatches(inputKeyCode, inputKeyChar)) {
                     L.goodCount++;
                     while (!directorStack.peek().equals(firstNotError)) {
                         directorStack.peek().selfDestruct();
@@ -452,7 +473,7 @@ public class Director {
                     directorStack.push(firstError);
                 }
             } else {
-                if (first.targetKeyCode == inputKeyCode) {
+                if (first.targetMatches(inputKeyCode, inputKeyChar)) {
                     // Proper key hit - add good point, stop sound, return true.
                     L.goodCount++;
                     first.selfDestruct();

@@ -11,7 +11,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.swing.JOptionPane;
 
 public class App {
-    public static final String VERSION="0.4.19";
+    public static final String VERSION="0.5.0";
     
     public static final String[] SYSTEM_SOUND_DIRS = new String[]{"systemletters/", "systemnumbers/", "systemsounds/"};
 
@@ -39,6 +39,5 @@ public class App {
         L = new Lecturer(lectureNames.contains(myLecture) ? myLecture : lectureNames.get(0));
 
         G.startLecture(false);
-
     }
 }

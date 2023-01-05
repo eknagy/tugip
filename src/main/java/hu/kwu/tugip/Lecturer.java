@@ -25,7 +25,9 @@ public class Lecturer {
     public int badCount = 0;
     public int goodCount = 0;
     private static ArrayList<String> availableLectures = null;
-
+    
+    public boolean ignoreCase=true;
+    
     static {
         progressProperties = new Properties();
         try {
@@ -77,13 +79,16 @@ public class Lecturer {
             wavDirs[i] = "lecturesounds/" + wavDirs[i] + "/";
         }
 
-        System.err.println("DEBUG: Lectures: " + java.util.Arrays.toString(wavDirs));
+//        System.err.println("DEBUG: Lectures: " + java.util.Arrays.toString(wavDirs));
 
         try {
             passPercent = Integer.parseInt(lectureProperties.getProperty("PASS_PERCENT", "80").trim());
         } catch (NumberFormatException NFE) {
             System.err.println("passPercent defaulting to 80 because of NFE: " + NFE.toString());
         }
+        
+        ignoreCase = Boolean.parseBoolean(lectureProperties.getProperty("IGNORE_CASE", "true"));
+        System.err.println("DEBUG: L.ignoreCase="+ignoreCase);
     }
 
     public static ArrayList<String> listAvailableLecturesSorted() throws IOException {

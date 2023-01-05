@@ -19,6 +19,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,12 +29,15 @@ public class GUI extends JFrame {
 
     private final static HashMap<String, Integer> EXPECTED_KEYCODES = new HashMap<>();
 
+    private final static HashSet<String> HANDLED_AS_KEYCODES = new HashSet<>();
+    private final static HashSet<String> CAPITAL_LETTERS = new HashSet<>();
+
     public static boolean debugMode = false;
 
     private static String textToType = "";
     private static int textTypedPosition = 0;
 
-    private final static Font FONT144 = new Font("Monospaced", Font.BOLD, 144);
+    // private final static Font FONT144 = new Font("Monospaced", Font.BOLD, 144);
     private final static Font FONT72 = new Font("Monospaced", Font.BOLD, 72);
     private final static Font FONT36 = new Font("Monospaced", Font.BOLD, 36);
 
@@ -61,9 +65,6 @@ public class GUI extends JFrame {
     private int lastRegenerateIndex = -1;
 
     static {
-        EXPECTED_KEYCODES.put("\u23CE", KeyEvent.VK_ENTER);
-        EXPECTED_KEYCODES.put(" ", KeyEvent.VK_SPACE);
-        EXPECTED_KEYCODES.put(",", KeyEvent.VK_COMMA);
         EXPECTED_KEYCODES.put("a", KeyEvent.VK_A);
         EXPECTED_KEYCODES.put("á", 16777441);
         EXPECTED_KEYCODES.put("d", KeyEvent.VK_D);
@@ -85,6 +86,19 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("u", KeyEvent.VK_U);
         EXPECTED_KEYCODES.put("v", KeyEvent.VK_V);
         EXPECTED_KEYCODES.put("z", KeyEvent.VK_Z);
+
+        for (String CK : EXPECTED_KEYCODES.keySet().toArray(new String[0])) {
+            EXPECTED_KEYCODES.put(CK.toUpperCase(), EXPECTED_KEYCODES.get(CK));
+            CAPITAL_LETTERS.add(CK.toUpperCase());
+        }
+
+//        EXPECTED_KEYCODES.put("\u21E7", KeyEvent.VK_SHIFT);
+        EXPECTED_KEYCODES.put("\u23CE", KeyEvent.VK_ENTER);
+        EXPECTED_KEYCODES.put(" ", KeyEvent.VK_SPACE);
+        EXPECTED_KEYCODES.put(",", KeyEvent.VK_COMMA);
+        EXPECTED_KEYCODES.put(".", KeyEvent.VK_PERIOD);
+
+        HANDLED_AS_KEYCODES.addAll(EXPECTED_KEYCODES.keySet());
     }
 
     public void regenerateText(boolean forceAll) {
@@ -118,10 +132,10 @@ public class GUI extends JFrame {
         }
     }
 
-    public void processKeyCode(int keyCode) {
+    public void processKeyCode(int keyCode, char keyChar) {
         DI.setText(DI.getText() + " " + keyCode);
         if (acceptInput) {
-            if (Director.consumeKeyDown(keyCode)) {
+            if (Director.consumeKeyDown(keyCode, keyChar)) {
                 textTypedPosition++;
                 regenerateText(false);
             }
@@ -179,12 +193,23 @@ public class GUI extends JFrame {
 
             if ("\u23CE".equals(nextChar)) {
                 nextChar = "enter";
+                Director.addNew(nextChar + ".wav", targetKeyCode, '\n');
             } else if (" ".equals(nextChar)) {
                 nextChar = "space";
+                Director.addNew(nextChar + ".wav", targetKeyCode, ' ');
             } else if (",".equals(nextChar)) {
                 nextChar = "vessz";
+                Director.addNew(nextChar + ".wav", targetKeyCode, ',');
+            } else if (".".equals(nextChar)) {
+                nextChar = "pont";
+                Director.addNew(nextChar + ".wav", targetKeyCode, '.');
+            } else {
+                if (CAPITAL_LETTERS.contains(nextChar)) {
+                    Director.addNew(new String[]{"shift.wav", nextChar.toLowerCase() + ".wav"}, targetKeyCode, nextChar.charAt(0));
+                } else {
+                    Director.addNew(nextChar + ".wav", targetKeyCode, nextChar.charAt(0));
+                }
             }
-            Director.addNew(nextChar + ".wav", targetKeyCode);
         }
 
         if (!nextLineMode) {
@@ -214,18 +239,24 @@ public class GUI extends JFrame {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
             @Override
             public boolean dispatchKeyEvent(KeyEvent KE) {
-                if (KE.getID() == KeyEvent.KEY_PRESSED) {
+                if (KE.getID() == KeyEvent.KEY_TYPED) {
+                    if (HANDLED_AS_KEYCODES.contains("" + KE.getKeyChar())) {
+                        // Ignore, handled as extendedkeycode
+                        return (true);
+                    } else {
+                        System.err.println("DEBUG: Unhandled KEY_TYPED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
+                    }
+                } else if (KE.getID() == KeyEvent.KEY_PRESSED) {
+                    System.err.println("DEBUG: KEY_PRESSED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
                     int EKC = KE.getExtendedKeyCode();
-                    if ((EXPECTED_KEYCODES.containsValue(EKC)) || (EKC==KeyEvent.VK_ESCAPE)) {
-                        processKeyCode(EKC);
+                    if ((EXPECTED_KEYCODES.containsValue(EKC)) || (EKC == KeyEvent.VK_ESCAPE)) {
+                        processKeyCode(EKC, KE.getKeyChar());
+                        return (true);
                     } else if (EKC == KeyEvent.VK_CAPS_LOCK || EKC == KeyEvent.VK_SHIFT) {
                         textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
                         // Caps lock press or shift down
-                    } else {
-                        System.err.println("DEBUG: Unknown KeyEvent: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
-                        // Ignore
+                        return (false);
                     }
-                    return (true);
                 } else if ((KE.getID() == KeyEvent.KEY_RELEASED) && (KE.getExtendedKeyCode() == KeyEvent.VK_SHIFT)) {
                     textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
                     // Shift up

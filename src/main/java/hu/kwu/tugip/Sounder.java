@@ -150,6 +150,9 @@ public class Sounder {
     }
 
     public BufferedInputStream getAutoPathFor(String wavFileName) {
+        if (wavFileName==null) {
+            return (null);
+        }
         InputStream IS;
         ClassLoader CL = Thread.currentThread().getContextClassLoader();
         for (String CD : L.getWavDirs()) {
@@ -164,8 +167,29 @@ public class Sounder {
             }
         }
 
-        System.err.println("DEBUG: No auto-path found for " + wavFileName + ", checked " + java.util.Arrays.toString(L.getWavDirs()) + " and " + java.util.Arrays.toString(App.SYSTEM_SOUND_DIRS));
+        App.redAlert("ERROR: No auto-path found for " + wavFileName + ", checked " + java.util.Arrays.toString(L.getWavDirs()) + " and " + java.util.Arrays.toString(App.SYSTEM_SOUND_DIRS));
         return (null);
+    }
+
+    public static byte [] loadWavsToBuffer(InputStream [] ISs) throws UnsupportedAudioFileException, IOException {
+        if (ISs.length==1) {
+            return (loadWavToBuffer(ISs[0]));
+        }
+            
+        byte [][] Tmp = new byte[ISs.length][];
+        int totalSize=0;
+        for (int i=0; i<ISs.length; i++) {
+            Tmp[i]=loadWavToBuffer(ISs[i]);
+            totalSize+=Tmp[i].length;
+        }
+        
+        byte [] retVal = new byte [totalSize];
+        int writeStart=0;
+        for (byte [] C:Tmp) {
+            java.lang.System.arraycopy(C, 0, retVal, writeStart, C.length);
+            writeStart+=C.length;
+        }
+        return (retVal);
     }
 
     public static byte[] loadWavToBuffer(InputStream IS) throws UnsupportedAudioFileException, IOException {
