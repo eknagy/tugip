@@ -79,6 +79,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("k", KeyEvent.VK_K);
         EXPECTED_KEYCODES.put("l", KeyEvent.VK_L);
         EXPECTED_KEYCODES.put("m", KeyEvent.VK_M);
+        EXPECTED_KEYCODES.put("n", KeyEvent.VK_N);
         EXPECTED_KEYCODES.put("o", KeyEvent.VK_O);
         EXPECTED_KEYCODES.put("ő", 16777553);
         EXPECTED_KEYCODES.put("r", KeyEvent.VK_R);
