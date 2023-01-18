@@ -101,6 +101,8 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("\u23CE", KeyEvent.VK_ENTER);
         EXPECTED_KEYCODES.put(" ", KeyEvent.VK_SPACE);
         EXPECTED_KEYCODES.put(",", KeyEvent.VK_COMMA);
+        EXPECTED_KEYCODES.put("-", KeyEvent.VK_MINUS);
+        EXPECTED_KEYCODES.put("–", 16785427); // Hungarian layout: AltGr-Z
         EXPECTED_KEYCODES.put(".", KeyEvent.VK_PERIOD);
 
         HANDLED_AS_KEYCODES.addAll(EXPECTED_KEYCODES.keySet());
@@ -192,7 +194,8 @@ public class GUI extends JFrame {
         for (int i = textToType.length() - 1; i >= 0; i--) {
             String nextChar = textToType.substring(i, i + 1);
             if (!EXPECTED_KEYCODES.containsKey(nextChar)) {
-                App.redAlert("Error: unhandled next char in GUI: " + nextChar);
+                System.err.println("–".equals(nextChar)+" "+nextChar);
+                App.redAlert("Error: unhandled next char in GUI: " + nextChar + " in "+textToType);
             }
             int targetKeyCode = EXPECTED_KEYCODES.get(nextChar);
 
@@ -208,6 +211,12 @@ public class GUI extends JFrame {
             } else if (".".equals(nextChar)) {
                 nextChar = "pont";
                 Director.addNew(nextChar + ".wav", targetKeyCode, '.');
+            } else if ("-".equals(nextChar)) {
+                nextChar = "kotojel";
+                Director.addNew(nextChar + ".wav", targetKeyCode, '-');
+            } else if ("–".equals(nextChar)) {
+                nextChar = "hosszu_kotojel";
+                Director.addNew(nextChar + ".wav", targetKeyCode, '–');
             } else {
                 if (CAPITAL_LETTERS.contains(nextChar)) {
                     Director.addNew(new String[]{"shift.wav", nextChar.toLowerCase() + ".wav"}, targetKeyCode, nextChar.charAt(0));
