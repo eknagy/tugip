@@ -27,6 +27,8 @@ public class Director {
     private final static ConcurrentHashMap<String, byte[]> wavBufferLookUpTable = new ConcurrentHashMap<>(); // Filenames to binary buffers
     private final static Stack<Director> directorStack; // Stack of directors - as a sound file queue
 
+    private byte EnDashTwoMinusState = 0;
+
     private int targetKeyCode = -1;
     private char targetKeyChar = '\0';
     private byte[] wavBuffer = null;
@@ -322,6 +324,30 @@ public class Director {
         Director.addNew((currentPercent >= targetPercent ? "yuhuu" : "ooo") + ".wav", -2);
     }
 
+    public byte handleEnDash(int inputKeyCode, char inputKeyChar) {
+        if (this.targetKeyCode == 16785427) {
+            System.err.println("DEBUG: fNE is 16785427");
+            if (inputKeyCode == KeyEvent.VK_MINUS) {
+                // We need to check for double-minus as it is used for en dash
+                // in MS Word and LibreOffice and in many other places
+                if (EnDashTwoMinusState==0) {
+                    // The first minus should set EnDashTwoMinusState to 1
+                    // and return false - character is not to be consumed
+                    EnDashTwoMinusState=1;
+                    System.err.println("DEBUG: fNE eat first -");
+                } else {
+                    // The second minus should be interpreted as an em dash
+                    System.err.println("DEBUG: fNE second -");
+                    EnDashTwoMinusState=2;
+                }
+            } else {
+                // Wrong key pressed - we should reset the state
+                System.err.println("DEBUG: fNE reset");
+                EnDashTwoMinusState = 0;
+            }
+        }
+        return (EnDashTwoMinusState);
+    }
     /**
      * Checks targetKeyCode input against expected keyCode in the Stack.
      *
@@ -335,17 +361,23 @@ public class Director {
      * If the expected keyCode is -3 / End of Line, load the next line (if it
      * exits) and reset GUI and directorStack (end-of-line). If no more lines
      * exist, evaluate the typist and construct the necessary Directors
-     * (end-of-lecture mode)).<br>
+     * (end-of-lecture mode).<br>
      * If the expected keyCode is -4 / End of Lecture, remove all remaining
      * Directors and according the settings and available lectures, quit or
      * restart or go to the next lecture.<br>
-     * If the expected keyCode matches the input, destruct the Director on the
-     * top of the stack, start the next and return true (the typist hit a
-     * matching or good key)<br>
+     * If the expected keyCode is en dash ("gondolatjel, nagykötőjel"), either
+     * two minus keys are expected or the en dash character itself (it can be
+     * typed with Alt-150 in Windows and AltGr-z in Linux). If the expected
+     * keyCode matches the input (see inputKeyChar as well), destruct the
+     * Director on the top of the stack, start the next and return true (the
+     * typist hit a matching or good key)<br>
      * If the expected keyCode differs from the input, destroy this half-played
      * or fully played instance, create a fresh one, push it on the stack and
      * then push a freshly created error sound on the top of the stack, and
      * return false (the typist hit a bad / not matching key).<br>
+     *
+     * @param inputKeyChar - if the lecture is set to ignore case, ignore this,
+     * otherwise check if the case matches as well.
      *
      * @return true, if the KeyCode is consumed and typist should progress a
      * character forward, false otherwise<br>
@@ -458,7 +490,15 @@ public class Director {
                 if (firstNotError == null) {
                     throw new RuntimeException("FATAL: CAN NOT HAPPEN: ONLY ERRORS IN DIRECTORSTACK.");
                 }
-//                System.err.println("DEBUG: MYBUG: Expected "+firstNotError.targetKeyCode+" and got "+inputKeyCode);
+                switch (firstNotError.handleEnDash(inputKeyCode, inputKeyChar)) {
+                        case 0: break;
+                        case 1: return(false);
+                        case 2: inputKeyCode = 16785427;
+                                inputKeyChar = '–';
+                                break;
+                        default: throw new RuntimeException("Unimplemented!");
+                }
+                
                 if (firstNotError.targetMatches(inputKeyCode, inputKeyChar)) {
                     L.goodCount++;
                     while (!directorStack.peek().equals(firstNotError)) {
@@ -473,6 +513,14 @@ public class Director {
                     directorStack.push(firstError);
                 }
             } else {
+                switch (first.handleEnDash(inputKeyCode, inputKeyChar)) {
+                        case 0: break;
+                        case 1: return(false);
+                        case 2: inputKeyCode = 16785427;
+                                inputKeyChar = '–';
+                                break;
+                        default: throw new RuntimeException("Unimplemented!");
+                }
                 if (first.targetMatches(inputKeyCode, inputKeyChar)) {
                     // Proper key hit - add good point, stop sound, return true.
                     L.goodCount++;

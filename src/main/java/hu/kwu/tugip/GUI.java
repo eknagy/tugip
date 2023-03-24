@@ -102,7 +102,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put(" ", KeyEvent.VK_SPACE);
         EXPECTED_KEYCODES.put(",", KeyEvent.VK_COMMA);
         EXPECTED_KEYCODES.put("-", KeyEvent.VK_MINUS);
-        EXPECTED_KEYCODES.put("–", 16785427); // Hungarian layout: AltGr-Z
+        EXPECTED_KEYCODES.put("–", 16785427); // En Dash - Windows Alt-150, Linux AltGr-z
         EXPECTED_KEYCODES.put(".", KeyEvent.VK_PERIOD);
 
         HANDLED_AS_KEYCODES.addAll(EXPECTED_KEYCODES.keySet());
