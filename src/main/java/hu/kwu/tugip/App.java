@@ -11,7 +11,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.swing.JOptionPane;
 
 public class App {
-    public static final String VERSION="0.6.3";
+    public static final String VERSION="0.6.4";
     
     public static final String[] SYSTEM_SOUND_DIRS = new String[]{"systemletters/", "systemnumbers/", "systemsounds/"};
 
