@@ -84,6 +84,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("o", KeyEvent.VK_O);
         EXPECTED_KEYCODES.put("ő", 16777553);
         EXPECTED_KEYCODES.put("p", KeyEvent.VK_P);
+        EXPECTED_KEYCODES.put("q", KeyEvent.VK_Q);
         EXPECTED_KEYCODES.put("r", KeyEvent.VK_R);
         EXPECTED_KEYCODES.put("s", KeyEvent.VK_S);
         EXPECTED_KEYCODES.put("t", KeyEvent.VK_T);
@@ -93,12 +94,11 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("y", KeyEvent.VK_Y);
         EXPECTED_KEYCODES.put("z", KeyEvent.VK_Z);
 
-        for (String CK : EXPECTED_KEYCODES.keySet().toArray(new String[0])) {
+        for (String CK : EXPECTED_KEYCODES.keySet().toArray(String[]::new)) {
             EXPECTED_KEYCODES.put(CK.toUpperCase(), EXPECTED_KEYCODES.get(CK));
             CAPITAL_LETTERS.add(CK.toUpperCase());
         }
 
-//        EXPECTED_KEYCODES.put("\u21E7", KeyEvent.VK_SHIFT);
         EXPECTED_KEYCODES.put("\u23CE", KeyEvent.VK_ENTER);
         EXPECTED_KEYCODES.put(" ", KeyEvent.VK_SPACE);
         EXPECTED_KEYCODES.put(",", KeyEvent.VK_COMMA);
