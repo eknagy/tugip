@@ -95,7 +95,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("y", KeyEvent.VK_Y);
         EXPECTED_KEYCODES.put("z", KeyEvent.VK_Z);
 
-        for (String CK : EXPECTED_KEYCODES.keySet().toArray(String[]::new)) {
+        for (String CK : EXPECTED_KEYCODES.keySet().toArray(new String[0])) {
             EXPECTED_KEYCODES.put(CK.toUpperCase(), EXPECTED_KEYCODES.get(CK));
             CAPITAL_LETTERS.add(CK.toUpperCase());
         }
