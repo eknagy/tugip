@@ -286,6 +286,12 @@ public class Director {
     }
 
     public boolean targetMatches(int targetKeyCode, char targetKeyChar) {
+        if (('í'==targetKeyChar) && (targetKeyCode==74)) {
+            targetKeyCode=16777453; // Windows 10 + Oracle JRE 8 treats AltGr+j different than the í key
+        }
+        if (('Í'==targetKeyChar) && (targetKeyCode==73)) {
+            targetKeyCode=16777453; // Windows 10 + Oracle JRE 8 treats AltGr+i different than the shift+í key
+        }
         if (L.ignoreCase == true) {
             return (this.targetKeyCode == targetKeyCode);
         } else {

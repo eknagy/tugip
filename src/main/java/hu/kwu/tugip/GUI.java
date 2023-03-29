@@ -76,6 +76,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("g", KeyEvent.VK_G);
         EXPECTED_KEYCODES.put("h", KeyEvent.VK_H);
         EXPECTED_KEYCODES.put("i", KeyEvent.VK_I);
+        EXPECTED_KEYCODES.put("í", 16777453);
         EXPECTED_KEYCODES.put("j", KeyEvent.VK_J);
         EXPECTED_KEYCODES.put("k", KeyEvent.VK_K);
         EXPECTED_KEYCODES.put("l", KeyEvent.VK_L);
@@ -196,29 +197,33 @@ public class GUI extends JFrame {
         for (int i = textToType.length() - 1; i >= 0; i--) {
             String nextChar = textToType.substring(i, i + 1);
             if (!EXPECTED_KEYCODES.containsKey(nextChar)) {
-                System.err.println("–".equals(nextChar)+" "+nextChar);
+                // System.err.println("–".equals(nextChar)+" "+nextChar);
                 App.redAlert("Error: unhandled next char in GUI: " + nextChar + " in "+textToType);
             }
             int targetKeyCode = EXPECTED_KEYCODES.get(nextChar);
 
             if ("\u23CE".equals(nextChar)) {
-                nextChar = "enter";
-                Director.addNew(nextChar + ".wav", targetKeyCode, '\n');
+                Director.addNew("enter.wav", targetKeyCode, '\n');
             } else if (" ".equals(nextChar)) {
-                nextChar = "space";
-                Director.addNew(nextChar + ".wav", targetKeyCode, ' ');
+                Director.addNew("space.wav", targetKeyCode, ' ');
             } else if (",".equals(nextChar)) {
-                nextChar = "vessz";
-                Director.addNew(nextChar + ".wav", targetKeyCode, ',');
+                Director.addNew("vessz.wav", targetKeyCode, ',');
             } else if (".".equals(nextChar)) {
-                nextChar = "pont";
-                Director.addNew(nextChar + ".wav", targetKeyCode, '.');
+                Director.addNew("pont.wav", targetKeyCode, '.');
             } else if ("-".equals(nextChar)) {
-                nextChar = "kotojel";
-                Director.addNew(nextChar + ".wav", targetKeyCode, '-');
+                Director.addNew("kotojel.wav", targetKeyCode, '-');
             } else if ("–".equals(nextChar)) {
-                nextChar = "hosszu_kotojel";
-                Director.addNew(nextChar + ".wav", targetKeyCode, '–');
+                Director.addNew("hosszu_kotojel.wav", targetKeyCode, '–');
+            } else if ("á".equals(nextChar)) {
+                Director.addNew("ha.wav", targetKeyCode, 'á');
+            } else if ("é".equals(nextChar)) {
+                Director.addNew("he.wav", targetKeyCode, 'é');
+            } else if ("í".equals(nextChar)) {
+                Director.addNew("hi.wav", targetKeyCode, 'í');
+            } else if ("ó".equals(nextChar)) {
+                Director.addNew("ho.wav", targetKeyCode, 'ó');
+            } else if ("ő".equals(nextChar)) {
+                Director.addNew("hhho.wav", targetKeyCode, 'ő');
             } else {
                 if (CAPITAL_LETTERS.contains(nextChar)) {
                     Director.addNew(new String[]{"shift.wav", nextChar.toLowerCase() + ".wav"}, targetKeyCode, nextChar.charAt(0));
