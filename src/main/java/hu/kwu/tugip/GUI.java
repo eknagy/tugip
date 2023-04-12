@@ -91,6 +91,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("s", KeyEvent.VK_S);
         EXPECTED_KEYCODES.put("t", KeyEvent.VK_T);
         EXPECTED_KEYCODES.put("u", KeyEvent.VK_U);
+        EXPECTED_KEYCODES.put("ű", 16777585);
         EXPECTED_KEYCODES.put("v", KeyEvent.VK_V);
         EXPECTED_KEYCODES.put("w", KeyEvent.VK_W);
         EXPECTED_KEYCODES.put("x", KeyEvent.VK_X);
@@ -225,6 +226,8 @@ public class GUI extends JFrame {
                 Director.addNew("ho.wav", targetKeyCode, 'ó');
             } else if ("ő".equals(nextChar)) {
                 Director.addNew("hhho.wav", targetKeyCode, 'ő');
+            } else if ("ű".equals(nextChar)) {
+                Director.addNew("hhhu.wav", targetKeyCode, 'ű');
             } else {
                 if (CAPITAL_LETTERS.contains(nextChar)) {
                     Director.addNew(new String[]{"shift.wav", nextChar.toLowerCase() + ".wav"}, targetKeyCode, nextChar.charAt(0));
