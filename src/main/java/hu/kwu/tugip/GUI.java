@@ -29,6 +29,8 @@ public class GUI extends JFrame {
 
     private final static HashMap<String, Integer> EXPECTED_KEYCODES = new HashMap<>();
 
+    private final static HashMap<String, String> SPECIAL_FILENAMES = new HashMap<>();
+
     private final static HashSet<String> HANDLED_AS_KEYCODES = new HashSet<>();
     private final static HashSet<String> CAPITAL_LETTERS = new HashSet<>();
 
@@ -65,6 +67,21 @@ public class GUI extends JFrame {
     private int lastRegenerateIndex = -1;
 
     static {
+        SPECIAL_FILENAMES.put(" ", "space.wav");
+        SPECIAL_FILENAMES.put(",", "vessz.wav");
+        SPECIAL_FILENAMES.put(".", "pont.wav");
+        SPECIAL_FILENAMES.put("-", "kotojel.wav");
+        SPECIAL_FILENAMES.put("–", "hosszu_kotojel.wav");
+        SPECIAL_FILENAMES.put("á", "ha.wav");
+        SPECIAL_FILENAMES.put("é", "he.wav");
+        SPECIAL_FILENAMES.put("í", "hi.wav");
+        SPECIAL_FILENAMES.put("ó", "ho.wav");
+        SPECIAL_FILENAMES.put("ö", "hho.wav");
+        SPECIAL_FILENAMES.put("ő", "hhho.wav");
+        SPECIAL_FILENAMES.put("ú", "hu.wav");
+        SPECIAL_FILENAMES.put("ü", "hhu.wav");
+        SPECIAL_FILENAMES.put("ű", "hhhu.wav");
+               
         EXPECTED_KEYCODES.put("a", KeyEvent.VK_A);
         EXPECTED_KEYCODES.put("b", KeyEvent.VK_B);
         EXPECTED_KEYCODES.put("á", 16777441);
@@ -84,6 +101,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("n", KeyEvent.VK_N);
         EXPECTED_KEYCODES.put("o", KeyEvent.VK_O);
         EXPECTED_KEYCODES.put("ó", 16777459);
+        EXPECTED_KEYCODES.put("ö", 16777430);
         EXPECTED_KEYCODES.put("ő", 16777553);
         EXPECTED_KEYCODES.put("p", KeyEvent.VK_P);
         EXPECTED_KEYCODES.put("q", KeyEvent.VK_Q);
@@ -91,6 +109,7 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("s", KeyEvent.VK_S);
         EXPECTED_KEYCODES.put("t", KeyEvent.VK_T);
         EXPECTED_KEYCODES.put("u", KeyEvent.VK_U);
+        EXPECTED_KEYCODES.put("ú", 16777466);
         EXPECTED_KEYCODES.put("ű", 16777585);
         EXPECTED_KEYCODES.put("v", KeyEvent.VK_V);
         EXPECTED_KEYCODES.put("w", KeyEvent.VK_W);
@@ -206,28 +225,12 @@ public class GUI extends JFrame {
 
             if ("\u23CE".equals(nextChar)) {
                 Director.addNew("enter.wav", targetKeyCode, '\n');
-            } else if (" ".equals(nextChar)) {
-                Director.addNew("space.wav", targetKeyCode, ' ');
-            } else if (",".equals(nextChar)) {
-                Director.addNew("vessz.wav", targetKeyCode, ',');
-            } else if (".".equals(nextChar)) {
-                Director.addNew("pont.wav", targetKeyCode, '.');
-            } else if ("-".equals(nextChar)) {
-                Director.addNew("kotojel.wav", targetKeyCode, '-');
-            } else if ("–".equals(nextChar)) {
-                Director.addNew("hosszu_kotojel.wav", targetKeyCode, '–');
-            } else if ("á".equals(nextChar)) {
-                Director.addNew("ha.wav", targetKeyCode, 'á');
-            } else if ("é".equals(nextChar)) {
-                Director.addNew("he.wav", targetKeyCode, 'é');
-            } else if ("í".equals(nextChar)) {
-                Director.addNew("hi.wav", targetKeyCode, 'í');
-            } else if ("ó".equals(nextChar)) {
-                Director.addNew("ho.wav", targetKeyCode, 'ó');
-            } else if ("ő".equals(nextChar)) {
-                Director.addNew("hhho.wav", targetKeyCode, 'ő');
-            } else if ("ű".equals(nextChar)) {
-                Director.addNew("hhhu.wav", targetKeyCode, 'ű');
+            } else if (SPECIAL_FILENAMES.containsKey(nextChar.toLowerCase())) {
+                if (CAPITAL_LETTERS.contains(nextChar)) {
+                    Director.addNew(new String[]{"shift.wav", SPECIAL_FILENAMES.get(nextChar.toLowerCase())}, targetKeyCode, nextChar.charAt(0));
+                } else {
+                    Director.addNew(SPECIAL_FILENAMES.get(nextChar), targetKeyCode, nextChar.charAt(0));
+                }
             } else {
                 if (CAPITAL_LETTERS.contains(nextChar)) {
                     Director.addNew(new String[]{"shift.wav", nextChar.toLowerCase() + ".wav"}, targetKeyCode, nextChar.charAt(0));
