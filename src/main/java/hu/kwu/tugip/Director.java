@@ -49,8 +49,8 @@ public class Director {
 
     public static void refreshDebug() {
         if (G.debugMode) {
-            G.D.setText(Director.toStringAll());
-            G.D.repaint();
+            G.DebugDirectorTextArea.setText(Director.toStringAll());
+            G.DebugDirectorTextArea.repaint();
         } else {
             //        System.err.println(Director.toStringAll());
         }
@@ -58,7 +58,8 @@ public class Director {
 
     public static String toStringAll() {
         StringBuilder retVal = new StringBuilder();
-        for (int i = directorStack.size() - 1; i >= 0; i--) {
+        for (int i = 0; i <= directorStack.size() - 1; i++) {
+//        for (int i = directorStack.size() - 1; i >= 0; i--) {
             retVal.append(directorStack.get(i).toString());
             retVal.append("\n");
         }
@@ -68,6 +69,21 @@ public class Director {
     public static void playFirst() {
         if (!directorStack.empty()) {
             directorStack.peek().play();
+        }
+    }
+
+    public static void regenerateFirst() {
+        synchronized (directorStack) {
+            if (!directorStack.empty()) {
+                while ((!directorStack.empty()) && (directorStack.peek().targetKeyCode == 0)) {
+                    directorStack.pop().selfDestruct(); // Remove first "Error" sound (keyCode==0) from non-empty stack
+                    System.err.println("DEBUG:NEXT: " + directorStack.empty());
+                    System.err.println("DEBUG:NEXT: " + directorStack.peek().targetKeyCode);
+                }
+                Director OldFirst = directorStack.pop();
+                addNew(OldFirst.wavFileNames, OldFirst.targetKeyCode, OldFirst.targetKeyChar);
+                OldFirst.selfDestruct();
+            }
         }
     }
 
@@ -286,11 +302,11 @@ public class Director {
     }
 
     public boolean targetMatches(int targetKeyCode, char targetKeyChar) {
-        if (('í'==targetKeyChar) && (targetKeyCode==74)) {
-            targetKeyCode=16777453; // Windows 10 + Oracle JRE 8 treats AltGr+j different than the í key
+        if (('í' == targetKeyChar) && (targetKeyCode == 74)) {
+            targetKeyCode = 16777453; // Windows 10 + Oracle JRE 8 treats AltGr+j different than the í key
         }
-        if (('Í'==targetKeyChar) && (targetKeyCode==73)) {
-            targetKeyCode=16777453; // Windows 10 + Oracle JRE 8 treats AltGr+i different than the shift+í key
+        if (('Í' == targetKeyChar) && (targetKeyCode == 73)) {
+            targetKeyCode = 16777453; // Windows 10 + Oracle JRE 8 treats AltGr+i different than the shift+í key
         }
         if (L.ignoreCase == true) {
             return (this.targetKeyCode == targetKeyCode);
@@ -336,15 +352,15 @@ public class Director {
             if (inputKeyCode == KeyEvent.VK_MINUS) {
                 // We need to check for double-minus as it is used for en dash
                 // in MS Word and LibreOffice and in many other places
-                if (EnDashTwoMinusState==0) {
+                if (EnDashTwoMinusState == 0) {
                     // The first minus should set EnDashTwoMinusState to 1
                     // and return false - character is not to be consumed
-                    EnDashTwoMinusState=1;
+                    EnDashTwoMinusState = 1;
                     System.err.println("DEBUG: fNE eat first -");
                 } else {
                     // The second minus should be interpreted as an em dash
                     System.err.println("DEBUG: fNE second -");
-                    EnDashTwoMinusState=2;
+                    EnDashTwoMinusState = 2;
                 }
             } else {
                 // Wrong key pressed - we should reset the state
@@ -354,6 +370,7 @@ public class Director {
         }
         return (EnDashTwoMinusState);
     }
+
     /**
      * Checks targetKeyCode input against expected keyCode in the Stack.
      *
@@ -371,12 +388,15 @@ public class Director {
      * If the expected keyCode is -4 / End of Lecture, remove all remaining
      * Directors and according the settings and available lectures, quit or
      * restart or go to the next lecture.<br>
-     * If the expected keyCode is en dash ("gondolatjel, nagykötőjel"), either
-     * two minus keys are expected or the en dash character itself (it can be
-     * typed with Alt-150 in Windows and AltGr-z in Linux). If the expected
-     * keyCode matches the input (see inputKeyChar as well), destruct the
-     * Director on the top of the stack, start the next and return true (the
-     * typist hit a matching or good key)<br>
+     * TODO: If the input is deletion (Backspace, delete) and enableDeletion is
+     * true, the last typed character should be deleted and proper director(s)
+     * should be added and the statistics should be refreshed. If the expected
+     * keyCode is en dash ("gondolatjel, nagykötőjel"), either two minus keys
+     * are expected or the en dash character itself (it can be typed with
+     * Alt-150 in Windows and AltGr-z in Linux). If the expected keyCode matches
+     * the input (see inputKeyChar as well), destruct the Director on the top of
+     * the stack, start the next and return true (the typist hit a matching or
+     * good key)<br>
      * If the expected keyCode differs from the input, destroy this half-played
      * or fully played instance, create a fresh one, push it on the stack and
      * then push a freshly created error sound on the top of the stack, and
@@ -464,10 +484,8 @@ public class Director {
                 ignoreClose = true;
                 synchronized (directorStack) {
                     first = directorStack.pop(); // We will destroy it later, but first we destroy all following intro sounds to prevent autoplay
-//                    System.err.println("DEBUG: prep: "+directorStack.peek());
                     while ((!directorStack.isEmpty()) && (directorStack.peek().targetKeyCode == -1)) {
-                        System.err.println("DEBUG: -1 SD peek: " + directorStack.peek());
-
+//                        System.err.println("DEBUG: -1 SD peek: " + directorStack.peek());
                         directorStack.peek().selfDestruct();
                     }
                     System.err.println("DEBUG: -1 SD next: " + directorStack.peek());
@@ -497,14 +515,18 @@ public class Director {
                     throw new RuntimeException("FATAL: CAN NOT HAPPEN: ONLY ERRORS IN DIRECTORSTACK.");
                 }
                 switch (firstNotError.handleEnDash(inputKeyCode, inputKeyChar)) {
-                        case 0: break;
-                        case 1: return(false);
-                        case 2: inputKeyCode = 16785427;
-                                inputKeyChar = '–';
-                                break;
-                        default: throw new RuntimeException("Unimplemented!");
+                    case 0:
+                        break;
+                    case 1:
+                        return (false);
+                    case 2:
+                        inputKeyCode = 16785427;
+                        inputKeyChar = '–';
+                        break;
+                    default:
+                        throw new RuntimeException("Unimplemented!");
                 }
-                
+
                 if (firstNotError.targetMatches(inputKeyCode, inputKeyChar)) {
                     L.goodCount++;
                     while (!directorStack.peek().equals(firstNotError)) {
@@ -518,14 +540,18 @@ public class Director {
                     addNew("hiba.wav", 0);
                     directorStack.push(firstError);
                 }
-            } else {
+            } else { // The simpler case - the first Director is not an error sound
                 switch (first.handleEnDash(inputKeyCode, inputKeyChar)) {
-                        case 0: break;
-                        case 1: return(false);
-                        case 2: inputKeyCode = 16785427;
-                                inputKeyChar = '–';
-                                break;
-                        default: throw new RuntimeException("Unimplemented!");
+                    case 0:
+                        break;
+                    case 1:
+                        return (false);
+                    case 2:
+                        inputKeyCode = 16785427;
+                        inputKeyChar = '–';
+                        break;
+                    default:
+                        throw new RuntimeException("Unimplemented!");
                 }
                 if (first.targetMatches(inputKeyCode, inputKeyChar)) {
                     // Proper key hit - add good point, stop sound, return true.

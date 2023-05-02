@@ -25,7 +25,8 @@ public class Lecturer {
     public int badCount = 0;
     public int goodCount = 0;
     private static ArrayList<String> availableLectures = null;
-    
+
+    public boolean enableBackSpace=false;
     public boolean ignoreCase=true;
     
     static {
@@ -79,8 +80,6 @@ public class Lecturer {
             wavDirs[i] = "lecturesounds/" + wavDirs[i] + "/";
         }
 
-//        System.err.println("DEBUG: Lectures: " + java.util.Arrays.toString(wavDirs));
-
         try {
             passPercent = Integer.parseInt(lectureProperties.getProperty("PASS_PERCENT", "80").trim());
         } catch (NumberFormatException NFE) {
@@ -88,6 +87,7 @@ public class Lecturer {
         }
         
         ignoreCase = Boolean.parseBoolean(lectureProperties.getProperty("IGNORE_CASE", "true"));
+        enableBackSpace = Boolean.parseBoolean(lectureProperties.getProperty("ENABLE_BACKSPACE", "false"));
         System.err.println("DEBUG: L.ignoreCase="+ignoreCase);
     }
 

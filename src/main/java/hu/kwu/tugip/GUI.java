@@ -34,7 +34,7 @@ public class GUI extends JFrame {
     private final static HashSet<String> HANDLED_AS_KEYCODES = new HashSet<>();
     private final static HashSet<String> CAPITAL_LETTERS = new HashSet<>();
 
-    public static boolean debugMode = false;
+    public static boolean debugMode = true;
 
     private static String textToType = "";
     private static int textTypedPosition = 0;
@@ -57,12 +57,12 @@ public class GUI extends JFrame {
     private final JPanel textPanel = new JPanel(new GridLayout(TEXTPANELROWS, TEXTPANELCOLS));
     private final JLabel[] textLabels = new JLabel[TEXTPANELCOLS * TEXTPANELROWS];
 
-    private final JPanel debugPanel = new JPanel(new BorderLayout());
+    private final JPanel debugPanel = new JPanel(new GridLayout(2, 1));
     private final JPanel aboutPanel = new JPanel(new GridLayout(2, 1));
     private final Color[] colorTable = new Color[2 * 256];
 
-    public final TextArea D = new TextArea("DEBUG: Loading...");
-    public final TextArea DI = new TextArea("DEBUG: Loading...");
+    public final TextArea DebugDirectorTextArea = new TextArea("DEBUG: Loading...");
+    public final TextArea DebugInputTextArea = new TextArea("DEBUG: Loading...");
 
     private int lastRegenerateIndex = -1;
 
@@ -81,7 +81,7 @@ public class GUI extends JFrame {
         SPECIAL_FILENAMES.put("ú", "hu.wav");
         SPECIAL_FILENAMES.put("ü", "hhu.wav");
         SPECIAL_FILENAMES.put("ű", "hhhu.wav");
-               
+
         EXPECTED_KEYCODES.put("a", KeyEvent.VK_A);
         EXPECTED_KEYCODES.put("b", KeyEvent.VK_B);
         EXPECTED_KEYCODES.put("á", 16777441);
@@ -146,7 +146,7 @@ public class GUI extends JFrame {
             lastRegenerateIndex = textTypedPosition;
         }
         String CL = L.getCurrentLine();
-        System.err.println("DEBUG: regenerateText(" + forceAll + ") from " + from + " to " + to);
+//        System.err.println("DEBUG: regenerateText(" + forceAll + ") from " + from + " to " + to);
         for (int i = from; i < to; i++) {
             if (i < CL.length()) {
                 if (i < textTypedPosition) {
@@ -165,16 +165,50 @@ public class GUI extends JFrame {
     }
 
     public void processKeyCode(int keyCode, char keyChar) {
-        DI.setText(DI.getText() + " " + keyCode);
+        DebugInputTextArea.setText("" + keyCode + "\n" + DebugInputTextArea.getText());
         if (acceptInput) {
-            if (Director.consumeKeyDown(keyCode, keyChar)) {
-                textTypedPosition++;
-                regenerateText(false);
+            if ((App.L.enableBackSpace) && (keyCode == KeyEvent.VK_BACK_SPACE)) {
+                //System.err.println("Backspace consumed!");
+                if (textTypedPosition > 0) {
+                    textTypedPosition--;
+                    regenerateText(true); // Regenerate GUI
+                    Director.regenerateFirst(); // Reset first director (might be playing/finished) destroy errors after/beore it
+                    insertDirector(textToType.substring(textTypedPosition, textTypedPosition + 1));
+                    Director.playFirst();
+                }
+            } else {
+                if (Director.consumeKeyDown(keyCode, keyChar)) {
+                    textTypedPosition++;
+                    regenerateText(false);
+                }
+                goodPointCount.setText("" + L.goodCount);
+                badPointCount.setText("" + L.badCount);
+                L.regeneratePassPanel(passLabel);
+                Director.playFirst();
             }
-            goodPointCount.setText("" + L.goodCount);
-            badPointCount.setText("" + L.badCount);
-            L.regeneratePassPanel(passLabel);
-            Director.playFirst();
+        }
+    }
+
+    public void insertDirector(String nextChar) {
+        if (!EXPECTED_KEYCODES.containsKey(nextChar)) {
+            App.redAlert("Error: unhandled next char in GUI: " + nextChar + " in " + textToType);
+        }
+        int targetKeyCode = EXPECTED_KEYCODES.get(nextChar);
+
+        if ("\u23CE".equals(nextChar)) {
+            Director.addNew("enter.wav", targetKeyCode, '\n');
+        } else if (SPECIAL_FILENAMES.containsKey(nextChar.toLowerCase())) {
+            if (CAPITAL_LETTERS.contains(nextChar)) {
+                Director.addNew(new String[]{"shift.wav", SPECIAL_FILENAMES.get(nextChar.toLowerCase())}, targetKeyCode, nextChar.charAt(0));
+            } else {
+                Director.addNew(SPECIAL_FILENAMES.get(nextChar), targetKeyCode, nextChar.charAt(0));
+            }
+        } else {
+            if (CAPITAL_LETTERS.contains(nextChar)) {
+                Director.addNew(new String[]{"shift.wav", nextChar.toLowerCase() + ".wav"}, targetKeyCode, nextChar.charAt(0));
+            } else {
+                Director.addNew(nextChar + ".wav", targetKeyCode, nextChar.charAt(0));
+            }
         }
     }
 
@@ -199,46 +233,12 @@ public class GUI extends JFrame {
 
         L.regeneratePassPanel(passLabel);
 
-        Director.addNew(null, -3); // Director uses a stack (FILO) - "generate results" command first
+        Director.addNew(null, -3); // Director uses a stack (FILO) - "generate results" command goes in first, comes out last
 
-        /*        if (true) {
-            Stack<String> tmpStack = new Stack<>();
-
-            Director.addNew(App.SYSTEMSOUNDDIR+"hello.wav", -2);
-            for (int i = 100; i >=0; i--) {
-                for (String CS : generateNumberFileNames(i)) {
-                    Director.addNew(App.NUMBERSSOUNDDIR + CS + ".wav", -2);
-                }
-            }
-            generateEnding(1,2,4,3);
-            acceptInput = true;
-            Director.play();
-            return;
-        }
-         */
+//        Director.insertMissingDirectorsFrom(textToType, false);
         for (int i = textToType.length() - 1; i >= 0; i--) {
             String nextChar = textToType.substring(i, i + 1);
-            if (!EXPECTED_KEYCODES.containsKey(nextChar)) {
-                // System.err.println("–".equals(nextChar)+" "+nextChar);
-                App.redAlert("Error: unhandled next char in GUI: " + nextChar + " in "+textToType);
-            }
-            int targetKeyCode = EXPECTED_KEYCODES.get(nextChar);
-
-            if ("\u23CE".equals(nextChar)) {
-                Director.addNew("enter.wav", targetKeyCode, '\n');
-            } else if (SPECIAL_FILENAMES.containsKey(nextChar.toLowerCase())) {
-                if (CAPITAL_LETTERS.contains(nextChar)) {
-                    Director.addNew(new String[]{"shift.wav", SPECIAL_FILENAMES.get(nextChar.toLowerCase())}, targetKeyCode, nextChar.charAt(0));
-                } else {
-                    Director.addNew(SPECIAL_FILENAMES.get(nextChar), targetKeyCode, nextChar.charAt(0));
-                }
-            } else {
-                if (CAPITAL_LETTERS.contains(nextChar)) {
-                    Director.addNew(new String[]{"shift.wav", nextChar.toLowerCase() + ".wav"}, targetKeyCode, nextChar.charAt(0));
-                } else {
-                    Director.addNew(nextChar + ".wav", targetKeyCode, nextChar.charAt(0));
-                }
-            }
+            insertDirector(nextChar);
         }
 
         if (!nextLineMode) {
@@ -257,11 +257,13 @@ public class GUI extends JFrame {
     }
 
     public void setIntensity(int Value, boolean isGreen) {
-        if ((Value < 0) || (Value > 255)) {
-            throw new RuntimeException("GUI.setIntensity() Value is " + Value);
+        if (!debugMode) {
+            if ((Value < 0) || (Value > 255)) {
+                throw new RuntimeException("GUI.setIntensity() Value is " + Value);
+            }
+            visualiserPanel.setBackground(colorTable[Value + (isGreen ? 0 : 256)]);
+            visualiserPanel.updateUI();
         }
-        visualiserPanel.setBackground(colorTable[Value + (isGreen ? 0 : 256)]);
-        visualiserPanel.updateUI();
     }
 
     public void registerKeyHandler() {
@@ -285,6 +287,9 @@ public class GUI extends JFrame {
                         textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
                         // Caps lock press or shift down
                         return (false);
+                    } else if (EKC == KeyEvent.VK_BACK_SPACE) {
+                        processKeyCode(EKC, KE.getKeyChar());
+                        return (true);
                     }
                 } else if ((KE.getID() == KeyEvent.KEY_RELEASED) && (KE.getExtendedKeyCode() == KeyEvent.VK_SHIFT)) {
                     textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
@@ -366,16 +371,15 @@ public class GUI extends JFrame {
         textLabel.setPreferredSize(new Dimension(1000, 600));
          */
         if (debugMode) {
-            textPanel.add(debugPanel, BorderLayout.NORTH);
-
+            visualiserPanel.add(debugPanel, BorderLayout.NORTH);
         }
         debugPanel.setBackground(Color.yellow);
-        D.setEditable(false);
-        D.setPreferredSize(new Dimension(1000, 300));
-        DI.setEditable(false);
-        DI.setPreferredSize(new Dimension(1000, 50));
-        debugPanel.add(D, BorderLayout.CENTER);
-        debugPanel.add(DI, BorderLayout.SOUTH);
+        DebugDirectorTextArea.setEditable(false);
+        DebugDirectorTextArea.setPreferredSize(new Dimension(450, 150));
+        debugPanel.add(DebugDirectorTextArea);
+        DebugInputTextArea.setEditable(false);
+        DebugInputTextArea.setPreferredSize(new Dimension(450, 150));
+        debugPanel.add(DebugInputTextArea);
         pack();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
