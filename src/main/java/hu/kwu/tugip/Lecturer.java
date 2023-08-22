@@ -22,8 +22,10 @@ public class Lecturer {
     private final String[] wavDirs;
     private int currentLineID = 1;
     public int passPercent = 80;
+    public int misTypeCount = 0;
     public int badCount = 0;
     public int goodCount = 0;
+    public int correctedCount=0;
     private static ArrayList<String> availableLectures = null;
 
     public boolean enableBackSpace=false;
@@ -45,6 +47,7 @@ public class Lecturer {
     public void resetCounts() {
         badCount = 0;
         goodCount = 0;
+        misTypeCount=0;
     }
 
     public int getCurrentPercent() {
@@ -143,8 +146,8 @@ public class Lecturer {
 
     public String[] getHelloFilesNames() throws IOException {
         String helloFilesLine = lectureProperties.getProperty("BEFORE_LECTURE", "hello");
-        String[] helloFilesStrings = helloFilesLine.split("\\s");
-        String[] helloFilesNames = new String[helloFilesStrings.length];
+        String [] helloFilesStrings = helloFilesLine.split("\\s");
+        String [] helloFilesNames = new String[helloFilesStrings.length];
 
         for (int i = 0; i < helloFilesStrings.length; i++) {
             helloFilesNames[i] = helloFilesStrings[i] + ".wav";

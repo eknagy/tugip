@@ -560,6 +560,7 @@ public class Director {
                     consumed = true;
                 } else {
                     // Not proper key hit - add bad point, regenerate (rewind) sound, pop error sound in front, start playing.
+                    G.misType();
                     L.badCount++;
                     first.mySounderThread.selfDestruct();
                     first.mySounderThread = new SounderThread(first.wavBuffer);

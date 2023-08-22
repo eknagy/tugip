@@ -34,7 +34,7 @@ public class GUI extends JFrame {
     private final static HashSet<String> HANDLED_AS_KEYCODES = new HashSet<>();
     private final static HashSet<String> CAPITAL_LETTERS = new HashSet<>();
 
-    public static boolean debugMode = true;
+    public static boolean debugMode = false;
 
     private static String textToType = "";
     private static int textTypedPosition = 0;
@@ -45,9 +45,10 @@ public class GUI extends JFrame {
 
     private static boolean acceptInput = false;
 
-    private final JPanel northPanel = new JPanel(new GridLayout(1, 4));
+    private final JPanel northPanel = new JPanel(new GridLayout(1, 5));
     private final JLabel goodPointCount = new JLabel("0", SwingConstants.CENTER);
     private final JLabel badPointCount = new JLabel("0", SwingConstants.CENTER);
+    private final JLabel misTypeCount = new JLabel("0", SwingConstants.CENTER);
     private final JLabel passLabel = new JLabel("??% (??%)", SwingConstants.CENTER);
     private final JPanel visualiserPanel = new JPanel();
 
@@ -56,6 +57,7 @@ public class GUI extends JFrame {
 
     private final JPanel textPanel = new JPanel(new GridLayout(TEXTPANELROWS, TEXTPANELCOLS));
     private final JLabel[] textLabels = new JLabel[TEXTPANELCOLS * TEXTPANELROWS];
+    private static final boolean[] misTypes = new boolean[TEXTPANELCOLS * TEXTPANELROWS];
 
     private final JPanel debugPanel = new JPanel(new GridLayout(2, 1));
     private final JPanel aboutPanel = new JPanel(new GridLayout(2, 1));
@@ -133,9 +135,22 @@ public class GUI extends JFrame {
         HANDLED_AS_KEYCODES.addAll(EXPECTED_KEYCODES.keySet());
     }
 
-    public void regenerateText(boolean forceAll) {
+    public static void misType() {
+        if (misTypes[textTypedPosition]==false) {
+            misTypes[textTypedPosition]=true;
+            L.misTypeCount++;
+        }
+    }
+    
+    public void regenerateText(boolean forceAll, boolean clearMisTypes) {
         int from = 0;
         int to = 0;
+        if (clearMisTypes) {
+            for (int i=0; i<misTypes.length; i++) {
+                misTypes[i]=false;
+            }
+        }
+
         if ((forceAll) || (lastRegenerateIndex == -1)) {
             from = 0;
             to = textLabels.length;
@@ -146,13 +161,21 @@ public class GUI extends JFrame {
             lastRegenerateIndex = textTypedPosition;
         }
         String CL = L.getCurrentLine();
-//        System.err.println("DEBUG: regenerateText(" + forceAll + ") from " + from + " to " + to);
+        System.err.println("DEBUG: regenerateText(" + forceAll + ") from " + from + " to " + to);
         for (int i = from; i < to; i++) {
             if (i < CL.length()) {
                 if (i < textTypedPosition) {
-                    textLabels[i].setBackground(Color.green);
+                    if (misTypes[i]) {
+                        textLabels[i].setBackground(Color.orange);
+                    } else {
+                        textLabels[i].setBackground(Color.green);
+                    }
                 } else if (i == textTypedPosition) {
-                    textLabels[i].setBackground(Color.yellow);
+                    if (misTypes[i]) {
+                        textLabels[i].setBackground(Color.red);
+                    } else {
+                        textLabels[i].setBackground(Color.yellow);
+                    }
                 } else {
                     textLabels[i].setBackground(Color.white);
                 }
@@ -171,7 +194,7 @@ public class GUI extends JFrame {
                 //System.err.println("Backspace consumed!");
                 if (textTypedPosition > 0) {
                     textTypedPosition--;
-                    regenerateText(true); // Regenerate GUI
+                    regenerateText(true, false); // Regenerate GUI
                     Director.regenerateFirst(); // Reset first director (might be playing/finished) destroy errors after/beore it
                     insertDirector(textToType.substring(textTypedPosition, textTypedPosition + 1));
                     Director.playFirst();
@@ -179,10 +202,11 @@ public class GUI extends JFrame {
             } else {
                 if (Director.consumeKeyDown(keyCode, keyChar)) {
                     textTypedPosition++;
-                    regenerateText(false);
                 }
+                regenerateText(false, false);
                 goodPointCount.setText("" + L.goodCount);
                 badPointCount.setText("" + L.badCount);
+                misTypeCount.setText("" + L.misTypeCount);
                 L.regeneratePassPanel(passLabel);
                 Director.playFirst();
             }
@@ -229,7 +253,7 @@ public class GUI extends JFrame {
             L.resetCounts();
         }
 
-        regenerateText(true);
+        regenerateText(true, true);
 
         L.regeneratePassPanel(passLabel);
 
@@ -331,6 +355,11 @@ public class GUI extends JFrame {
         badPointCount.setOpaque(true);
         badPointCount.setFont(FONT36);
         northPanel.add(badPointCount);
+        misTypeCount.setForeground(Color.ORANGE);
+        misTypeCount.setBackground(Color.WHITE);
+        misTypeCount.setOpaque(true);
+        misTypeCount.setFont(FONT36);
+        northPanel.add(misTypeCount);
         passLabel.setForeground(Color.BLACK);
         passLabel.setBackground(Color.WHITE);
         passLabel.setOpaque(true);

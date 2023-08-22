@@ -6,7 +6,7 @@ package tugip;
 import static hu.kwu.tugip.App.SYSTEM_SOUND_DIRS;
 import hu.kwu.tugip.Director;
 import hu.kwu.tugip.Sounder;
-import org.junit.jupiter.api.Assertions;
+import org.graalvm.compiler.debug.Assertions;
 import org.junit.jupiter.api.Test;
 
 class DirectorTester {
