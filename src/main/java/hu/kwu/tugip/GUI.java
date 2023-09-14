@@ -28,6 +28,8 @@ import javax.swing.SwingConstants;
 public class GUI extends JFrame {
 
     private final static HashMap<String, Integer> EXPECTED_KEYCODES = new HashMap<>();
+    private final static HashMap<String, Integer> NUMPAD_KEYCODES = new HashMap<>();
+    private final static HashMap<Integer, Integer> NUMPAD_MAPPER = new HashMap<>();
 
     private final static HashMap<String, String> SPECIAL_FILENAMES = new HashMap<>();
 
@@ -143,6 +145,28 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("–", 16785427); // En Dash - Windows Alt-150, Linux AltGr-z
         EXPECTED_KEYCODES.put(".", KeyEvent.VK_PERIOD);
 
+        NUMPAD_KEYCODES.put("0", KeyEvent.VK_NUMPAD0);
+        NUMPAD_KEYCODES.put("1", KeyEvent.VK_NUMPAD1);
+        NUMPAD_KEYCODES.put("2", KeyEvent.VK_NUMPAD2);
+        NUMPAD_KEYCODES.put("3", KeyEvent.VK_NUMPAD3);
+        NUMPAD_KEYCODES.put("4", KeyEvent.VK_NUMPAD4);
+        NUMPAD_KEYCODES.put("5", KeyEvent.VK_NUMPAD5);
+        NUMPAD_KEYCODES.put("6", KeyEvent.VK_NUMPAD6);
+        NUMPAD_KEYCODES.put("7", KeyEvent.VK_NUMPAD7);
+        NUMPAD_KEYCODES.put("8", KeyEvent.VK_NUMPAD8);
+        NUMPAD_KEYCODES.put("9", KeyEvent.VK_NUMPAD9);
+        
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD0, KeyEvent.VK_0);
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD1, KeyEvent.VK_1);
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD2, KeyEvent.VK_2);
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD3, KeyEvent.VK_3);
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD4, KeyEvent.VK_4);
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD5, KeyEvent.VK_5);
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD6, KeyEvent.VK_6);
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD7, KeyEvent.VK_7);
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD8, KeyEvent.VK_8);
+        NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD9, KeyEvent.VK_9);
+        
         HANDLED_AS_KEYCODES.addAll(EXPECTED_KEYCODES.keySet());
     }
 
@@ -325,7 +349,13 @@ public class GUI extends JFrame {
                     } else if (EKC == KeyEvent.VK_BACK_SPACE) {
                         processKeyCode(EKC, KE.getKeyChar());
                         return (true);
+                    } else if (NUMPAD_KEYCODES.containsValue(EKC)) {
+                        // TODO: FIXME: Add lecture option to disable numpad?
+                        System.err.println("DEBUG: Numpad KEY_PRESSED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
+                        processKeyCode(NUMPAD_MAPPER.get(KE.getExtendedKeyCode()), KE.getKeyChar());
+                        return (true);
                     }
+                    System.err.println("DEBUG: Unhanled KEY_PRESSED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
                 } else if ((KE.getID() == KeyEvent.KEY_RELEASED) && (KE.getExtendedKeyCode() == KeyEvent.VK_SHIFT)) {
                     textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
                     // Shift up
