@@ -155,6 +155,8 @@ public class GUI extends JFrame {
         NUMPAD_KEYCODES.put("7", KeyEvent.VK_NUMPAD7);
         NUMPAD_KEYCODES.put("8", KeyEvent.VK_NUMPAD8);
         NUMPAD_KEYCODES.put("9", KeyEvent.VK_NUMPAD9);
+        NUMPAD_KEYCODES.put(",", 108); // Sadly, there is no constant for VK_NUMPAD_COMMA
+        NUMPAD_KEYCODES.put("-", 109); // Sadly, there is no constant for VK_NUMPAD_MINUS
         
         NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD0, KeyEvent.VK_0);
         NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD1, KeyEvent.VK_1);
@@ -166,6 +168,8 @@ public class GUI extends JFrame {
         NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD7, KeyEvent.VK_7);
         NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD8, KeyEvent.VK_8);
         NUMPAD_MAPPER.put(KeyEvent.VK_NUMPAD9, KeyEvent.VK_9);
+        NUMPAD_MAPPER.put(108, KeyEvent.VK_COMMA); // Sadly, there is no constant for VK_NUMPAD_COMMA
+        NUMPAD_MAPPER.put(109, KeyEvent.VK_MINUS); // Sadly, there is no constant for VK_NUMPAD_MINUS
         
         HANDLED_AS_KEYCODES.addAll(EXPECTED_KEYCODES.keySet());
     }
