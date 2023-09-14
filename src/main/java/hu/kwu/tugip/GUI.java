@@ -125,11 +125,17 @@ public class GUI extends JFrame {
             CAPITAL_LETTERS.add(CK.toUpperCase());
         }
 
+        EXPECTED_KEYCODES.put("0", KeyEvent.VK_0);
         EXPECTED_KEYCODES.put("1", KeyEvent.VK_1);
+        EXPECTED_KEYCODES.put("2", KeyEvent.VK_2);
         EXPECTED_KEYCODES.put("3", KeyEvent.VK_3);
+        EXPECTED_KEYCODES.put("4", KeyEvent.VK_4);
         EXPECTED_KEYCODES.put("5", KeyEvent.VK_5);
+        EXPECTED_KEYCODES.put("6", KeyEvent.VK_6);
         EXPECTED_KEYCODES.put("7", KeyEvent.VK_7);
+        EXPECTED_KEYCODES.put("8", KeyEvent.VK_8);
         EXPECTED_KEYCODES.put("9", KeyEvent.VK_9);
+
         EXPECTED_KEYCODES.put("\u23CE", KeyEvent.VK_ENTER);
         EXPECTED_KEYCODES.put(" ", KeyEvent.VK_SPACE);
         EXPECTED_KEYCODES.put(",", KeyEvent.VK_COMMA);
