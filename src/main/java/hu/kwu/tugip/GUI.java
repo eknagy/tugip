@@ -74,8 +74,14 @@ public class GUI extends JFrame {
         SPECIAL_FILENAMES.put(" ", "space.wav");
         SPECIAL_FILENAMES.put(",", "vessz.wav");
         SPECIAL_FILENAMES.put(".", "pont.wav");
+        SPECIAL_FILENAMES.put(":", "kettospont.wav");
         SPECIAL_FILENAMES.put("-", "kotojel.wav");
         SPECIAL_FILENAMES.put("–", "hosszu_kotojel.wav");
+        SPECIAL_FILENAMES.put("?", "kerdojel.wav");
+        SPECIAL_FILENAMES.put("!", "felkialtojel.wav");
+        SPECIAL_FILENAMES.put("\"", "idezojel.wav");
+        SPECIAL_FILENAMES.put("(", "nyito_zarojel.wav");
+        SPECIAL_FILENAMES.put(")", "csuko_zarojel.wav");
         SPECIAL_FILENAMES.put("á", "ha.wav");
         SPECIAL_FILENAMES.put("é", "he.wav");
         SPECIAL_FILENAMES.put("í", "hi.wav");
@@ -144,6 +150,12 @@ public class GUI extends JFrame {
         EXPECTED_KEYCODES.put("-", KeyEvent.VK_MINUS);
         EXPECTED_KEYCODES.put("–", 16785427); // En Dash - Windows Alt-150, Linux AltGr-z
         EXPECTED_KEYCODES.put(".", KeyEvent.VK_PERIOD);
+        EXPECTED_KEYCODES.put(":", KeyEvent.VK_PERIOD); // Shift-period on a Hungarian keyboard, not a dedicated key! 
+        EXPECTED_KEYCODES.put("?", KeyEvent.VK_COMMA);
+        EXPECTED_KEYCODES.put("\"", KeyEvent.VK_2); // Shift-2 on a Hungarian keyboard, not a dedicated key! 
+        EXPECTED_KEYCODES.put("!", KeyEvent.VK_4); // Shift-4 on a Hungarian keyboard, not a dedicated key! 
+        EXPECTED_KEYCODES.put("(", KeyEvent.VK_8); // Shift-8 on a Hungarian keyboard, not a dedicated key! 
+        EXPECTED_KEYCODES.put(")", KeyEvent.VK_9); // Shift-9 on a Hungarian keyboard, not a dedicated key! 
 
         NUMPAD_KEYCODES.put("0", KeyEvent.VK_NUMPAD0);
         NUMPAD_KEYCODES.put("1", KeyEvent.VK_NUMPAD1);
