@@ -11,7 +11,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.swing.JOptionPane;
 
 public class App {
-    public static final String VERSION="0.7.9";
+    public static final String VERSION="0.8.0";
     
     public static final String[] SYSTEM_SOUND_DIRS = new String[]{"systemletters/", "systemnumbers/", "systemsounds/"};
 
@@ -30,7 +30,7 @@ public class App {
         ArrayList<String> lectureNames = Lecturer.listAvailableLecturesSorted();
         String myLecture = Lecturer.progressProperties.getProperty("nextLecture");
         
-//shred        System.err.println("DEBUG: myLecture: "+myLecture+" and lectureNames: "+lectureNames.toString());
+//        System.err.println("DEBUG: myLecture: "+myLecture+" and lectureNames: "+lectureNames.toString());
                
         if ((null == lectureNames) || (lectureNames.isEmpty())) {
             redAlert("No lectures: " + lectureNames);

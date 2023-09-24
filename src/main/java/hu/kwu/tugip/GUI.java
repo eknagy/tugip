@@ -54,8 +54,8 @@ public class GUI extends JFrame {
     private final JLabel passLabel = new JLabel("??% (??%)", SwingConstants.CENTER);
     private final JPanel visualiserPanel = new JPanel();
 
-    private final static int TEXTPANELROWS = 5;
-    private final static int TEXTPANELCOLS = 20;
+    private final static int TEXTPANELROWS = 4;
+    private final static int TEXTPANELCOLS = 16;
 
     private final JPanel textPanel = new JPanel(new GridLayout(TEXTPANELROWS, TEXTPANELCOLS));
     private final JLabel[] textLabels = new JLabel[TEXTPANELCOLS * TEXTPANELROWS];
@@ -212,7 +212,7 @@ public class GUI extends JFrame {
             lastRegenerateIndex = textTypedPosition;
         }
         String CL = L.getCurrentLine();
-        System.err.println("DEBUG: regenerateText(" + forceAll + ") from " + from + " to " + to);
+//        System.err.println("DEBUG: regenerateText(" + forceAll + ") from " + from + " to " + to);
         for (int i = from; i < to; i++) {
             if (i < CL.length()) {
                 if (i < textTypedPosition) {
@@ -350,10 +350,10 @@ public class GUI extends JFrame {
                         // Ignore, handled as extendedkeycode
                         return (true);
                     } else {
-                        System.err.println("DEBUG: Unhandled KEY_TYPED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
+//                        System.err.println("DEBUG: Unhandled KEY_TYPED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
                     }
                 } else if (KE.getID() == KeyEvent.KEY_PRESSED) {
-                    System.err.println("DEBUG: KEY_PRESSED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
+//                    System.err.println("DEBUG: KEY_PRESSED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
                     int EKC = KE.getExtendedKeyCode();
                     if ((EXPECTED_KEYCODES.containsValue(EKC)) || (EKC == KeyEvent.VK_ESCAPE)) {
                         processKeyCode(EKC, KE.getKeyChar());
@@ -367,11 +367,11 @@ public class GUI extends JFrame {
                         return (true);
                     } else if (NUMPAD_KEYCODES.containsValue(EKC)) {
                         // TODO: FIXME: Add lecture option to disable numpad?
-                        System.err.println("DEBUG: Numpad KEY_PRESSED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
+//                        System.err.println("DEBUG: Numpad KEY_PRESSED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
                         processKeyCode(NUMPAD_MAPPER.get(KE.getExtendedKeyCode()), KE.getKeyChar());
                         return (true);
                     }
-                    System.err.println("DEBUG: Unhanled KEY_PRESSED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
+//                    System.err.println("DEBUG: Unhanled KEY_PRESSED: " + KE + " or " + (0 + KE.getExtendedKeyCode()));
                 } else if ((KE.getID() == KeyEvent.KEY_RELEASED) && (KE.getExtendedKeyCode() == KeyEvent.VK_SHIFT)) {
                     textPanel.setBackground(textPanel.getBackground() == Color.WHITE ? Color.CYAN : Color.WHITE);
                     // Shift up

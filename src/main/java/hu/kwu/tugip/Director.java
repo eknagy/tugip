@@ -77,8 +77,8 @@ public class Director {
             if (!directorStack.empty()) {
                 while ((!directorStack.empty()) && (directorStack.peek().targetKeyCode == 0)) {
                     directorStack.pop().selfDestruct(); // Remove first "Error" sound (keyCode==0) from non-empty stack
-                    System.err.println("DEBUG:NEXT: " + directorStack.empty());
-                    System.err.println("DEBUG:NEXT: " + directorStack.peek().targetKeyCode);
+//                    System.err.println("DEBUG:NEXT: " + directorStack.empty());
+//                    System.err.println("DEBUG:NEXT: " + directorStack.peek().targetKeyCode);
                 }
                 Director OldFirst = directorStack.pop();
                 addNew(OldFirst.wavFileNames, OldFirst.targetKeyCode, OldFirst.targetKeyChar);
@@ -93,7 +93,7 @@ public class Director {
     }
 
     public void play() {
-        System.err.println("DEBUG: Playing: " + directorStack.peek());
+//        System.err.println("DEBUG: Playing: " + directorStack.peek());
         if (targetKeyCode == -4) {
             consumeKeyDown(KeyEvent.VK_SPACE, ' ');
         } else if (targetKeyCode == -3) {
@@ -125,7 +125,7 @@ public class Director {
                         if (!directorStack.empty()) {
                             Director first = directorStack.peek();
                             first.stoppedPlaying();
-                            System.err.println("DEBUG: " + System.currentTimeMillis() % 100000 + " Line Close while first is " + first);
+//                            System.err.println("DEBUG: " + System.currentTimeMillis() % 100000 + " Line Close while first is " + first);
                             boolean canStartNext = (first.targetKeyCode == 0) || (first.targetKeyCode == -2);
 
                             if (first.targetKeyCode == -1) {
@@ -159,9 +159,9 @@ public class Director {
 //            System.err.println("DEBUG: new Director(): "+toString());
             if (wavBufferLookUpTable.containsKey(wavFileNamesString)) {
                 wavBuffer = wavBufferLookUpTable.get(wavFileNamesString);
-                System.err.println("DEBUG Director: lookup " + this.toString());
+//                System.err.println("DEBUG Director: lookup " + this.toString());
             } else {
-                System.err.println("DEBUG Director: load   " + this.toString());
+//                System.err.println("DEBUG Director: load   " + this.toString());
                 try {
                     BufferedInputStream[] Candidates = new BufferedInputStream[wavFileNames.length];
                     for (int i = 0; i < Candidates.length; i++) {
@@ -212,7 +212,7 @@ public class Director {
     }
 
     public void selfDestruct() {
-        System.err.println("DEBUG: " + System.currentTimeMillis() % 100000 + " selfDestruct:" + this);
+//        System.err.println("DEBUG: " + System.currentTimeMillis() % 100000 + " selfDestruct:" + this);
         ignoreClose = true;
         synchronized (directorStack) {
             if (!directorStack.isEmpty()) {
@@ -348,7 +348,7 @@ public class Director {
 
     public byte handleEnDash(int inputKeyCode, char inputKeyChar) {
         if (this.targetKeyCode == 16785427) {
-            System.err.println("DEBUG: fNE is 16785427");
+//            System.err.println("DEBUG: fNE is 16785427");
             if (inputKeyCode == KeyEvent.VK_MINUS) {
                 // We need to check for double-minus as it is used for en dash
                 // in MS Word and LibreOffice and in many other places
@@ -356,15 +356,15 @@ public class Director {
                     // The first minus should set EnDashTwoMinusState to 1
                     // and return false - character is not to be consumed
                     EnDashTwoMinusState = 1;
-                    System.err.println("DEBUG: fNE eat first -");
+//                    System.err.println("DEBUG: fNE eat first -");
                 } else {
                     // The second minus should be interpreted as an em dash
-                    System.err.println("DEBUG: fNE second -");
+//                    System.err.println("DEBUG: fNE second -");
                     EnDashTwoMinusState = 2;
                 }
             } else {
                 // Wrong key pressed - we should reset the state
-                System.err.println("DEBUG: fNE reset");
+//                System.err.println("DEBUG: fNE reset");
                 EnDashTwoMinusState = 0;
             }
         }
@@ -410,7 +410,7 @@ public class Director {
      */
     public static boolean consumeKeyDown(int inputKeyCode, char inputKeyChar) {
         boolean consumed = false;
-        System.err.println("DEBUG: cKD: " + inputKeyCode);
+//        System.err.println("DEBUG: cKD: " + inputKeyCode);
         if (inputKeyCode == KeyEvent.VK_ESCAPE) { // We should quit
             G.close();
             return (false);
@@ -488,7 +488,7 @@ public class Director {
 //                        System.err.println("DEBUG: -1 SD peek: " + directorStack.peek());
                         directorStack.peek().selfDestruct();
                     }
-                    System.err.println("DEBUG: -1 SD next: " + directorStack.peek());
+//                    System.err.println("DEBUG: -1 SD next: " + directorStack.peek());
                     first.selfDestruct();
                     playFirst();
                 }

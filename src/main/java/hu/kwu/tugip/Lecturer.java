@@ -35,12 +35,12 @@ public class Lecturer {
         progressProperties = new Properties();
         try {
             BufferedInputStream BIS = new BufferedInputStream(new FileInputStream("lectures/progress.properties"));
-            System.err.println("DEBUG: BIS: " + BIS);
+//            System.err.println("DEBUG: BIS: " + BIS);
             progressProperties.load(BIS);
-            System.err.println("DEBUG: progressProperties: " + progressProperties);
+//            System.err.println("DEBUG: progressProperties: " + progressProperties);
 
         } catch (IOException E) {
-            System.err.println("DEBUG: IOE: " + E.toString()); // Ignore it, we just start from the first lecture (kiosk mode)
+//            System.err.println("DEBUG: IOE: " + E.toString()); // Ignore it, we just start from the first lecture (kiosk mode)
         }
     }
 
@@ -91,7 +91,7 @@ public class Lecturer {
         
         ignoreCase = Boolean.parseBoolean(lectureProperties.getProperty("IGNORE_CASE", "true"));
         enableBackSpace = Boolean.parseBoolean(lectureProperties.getProperty("ENABLE_BACKSPACE", "false"));
-        System.err.println("DEBUG: L.ignoreCase="+ignoreCase);
+//        System.err.println("DEBUG: L.ignoreCase="+ignoreCase);
     }
 
     public static ArrayList<String> listAvailableLecturesSorted() throws IOException {
@@ -135,7 +135,7 @@ public class Lecturer {
     }
 
     public String getCurrentLine() {
-        System.err.println("DEBUG: currentLineID: "+currentLineID);
+//        System.err.println("DEBUG: currentLineID: "+currentLineID);
         return (lectureProperties.getProperty("TEXT_" + currentLineID)+"\u23CE"); // .replaceAll(" ", "\u2423")
     }
 
@@ -153,7 +153,7 @@ public class Lecturer {
             helloFilesNames[i] = helloFilesStrings[i] + ".wav";
         }
 
-        System.err.println("DEBUG: gHFNs(): " + java.util.Arrays.toString(helloFilesNames));
+//        System.err.println("DEBUG: gHFNs(): " + java.util.Arrays.toString(helloFilesNames));
 
         return (helloFilesNames);
     }
