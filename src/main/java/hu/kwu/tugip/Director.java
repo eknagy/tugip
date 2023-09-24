@@ -110,7 +110,7 @@ public class Director {
     }
 
     static {
-        directorStack = new Stack();
+        directorStack = new Stack<Director>();
 
         selectedLine.addLineListener(new LineListener() {
             @Override
